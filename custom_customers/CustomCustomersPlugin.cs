@@ -77,6 +77,45 @@ public class CustomCustomersPlugin : DDPlugin {
 		}
 	}
 
+	class WorkerWalkSpeed {
+		private static bool set_speed_multiplier(ref float ___m_ExtraSpeedMultiplier) {
+			if (Settings.m_enabled.Value && Settings.m_worker_walk_speed_multiplier.Value > 0) {
+				___m_ExtraSpeedMultiplier = Settings.m_worker_walk_speed_multiplier.Value;
+				return true;
+			}
+			return false;
+		}
+
+		[HarmonyPatch(typeof(Worker), "EvaluateWorkerAttribute")]
+		class HarmonyPatch_Worker_EvaluateWorkerAttribute {
+			private static void Postfix(ref float ___m_ExtraSpeedMultiplier) {
+				set_speed_multiplier(ref ___m_ExtraSpeedMultiplier);
+			}
+		}
+
+		[HarmonyPatch(typeof(Worker), "SetExtraSpeedMultiplier")]
+		class HarmonyPatch_Worker_SetExtraSpeedMultiplier {
+			private static bool Prefix(ref float ___m_ExtraSpeedMultiplier) {
+				return !set_speed_multiplier(ref ___m_ExtraSpeedMultiplier);
+			}
+		}
+
+		[HarmonyPatch(typeof(Worker), "ResetExtraSpeedMultiplier")]
+		class HarmonyPatch_Worker_ResetExtraSpeedMultiplier {
+			private static bool Prefix(ref float ___m_ExtraSpeedMultiplier) {
+				return !set_speed_multiplier(ref ___m_ExtraSpeedMultiplier);
+			}
+		}
+
+		[HarmonyPatch(typeof(Worker), "Update")]
+		class HarmonyPatch_Worker_Update {
+			private static bool Prefix(ref float ___m_ExtraSpeedMultiplier) {
+				set_speed_multiplier(ref ___m_ExtraSpeedMultiplier);
+				return true;
+			}
+		}
+	}
+
 	class ExactChange {
 		[HarmonyPatch(typeof(Customer), "GetRandomPayAmount")]
 		class HarmonyPatch_Customer_GetRandomPayAmount {
@@ -126,7 +165,7 @@ public class CustomCustomersPlugin : DDPlugin {
 		class HarmonyPatch_CustomerManager_GetCustomerMaxMoney {
 			private static void Postfix(ref float __result) {
 				if (Settings.m_enabled.Value && Settings.m_max_money_multiplier.Value > 0) {
-					__result *= __result;
+					__result *= Settings.m_max_money_multiplier.Value;
 				}
 			}
 		}

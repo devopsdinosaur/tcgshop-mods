@@ -1,4 +1,16 @@
-﻿# 0.0.1
+﻿# 0.0.2
+
+## Features
+- Added setting: Worker walk speed multiplier
+
+## Bug Fixes
+- Fixed (I think?) customer max cash multiplier (need feedback and shared savedgames =)
+
+## In Progress
+- Max customer count
+- Time between customer spawns
+
+# 0.0.1
 
 ## Features
 - Added setting: Customer walk speed multiplier

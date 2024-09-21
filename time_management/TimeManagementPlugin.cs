@@ -50,6 +50,9 @@ public class TimeManagementPlugin : DDPlugin {
 	class HarmonyPatch_LightManager_EvaluateTimeClock {
 		private static bool Prefix(LightManager __instance, int ___m_TimeMin, int ___m_TimeHour) {
 			try {
+				
+				return true;
+
 				if (!Settings.m_enabled.Value) {
 					return true;
 				}

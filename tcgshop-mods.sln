@@ -20,6 +20,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "testing", "testing\testing.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "custom_customers", "custom_customers\custom_customers.csproj", "{21BB2D0B-F644-46F1-91ED-4AB00AC1BA6A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "time_management", "time_management\time_management.csproj", "{07435222-519F-4F63-BEBA-B71666F54451}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +36,10 @@ Global
 		{21BB2D0B-F644-46F1-91ED-4AB00AC1BA6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21BB2D0B-F644-46F1-91ED-4AB00AC1BA6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21BB2D0B-F644-46F1-91ED-4AB00AC1BA6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07435222-519F-4F63-BEBA-B71666F54451}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07435222-519F-4F63-BEBA-B71666F54451}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07435222-519F-4F63-BEBA-B71666F54451}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07435222-519F-4F63-BEBA-B71666F54451}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
