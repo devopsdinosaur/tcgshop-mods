@@ -28,7 +28,7 @@ public static class PluginInfo {
 }
 
 [BepInPlugin(PluginInfo.GUID, PluginInfo.TITLE, PluginInfo.VERSION)]
-public class SuperDavePlugin : DDPlugin {
+public class CustomCustomersPlugin : DDPlugin {
 	private Harmony m_harmony = new Harmony(PluginInfo.GUID);
 
 	private void Awake() {

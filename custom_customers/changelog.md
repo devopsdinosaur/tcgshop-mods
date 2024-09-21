@@ -9,4 +9,5 @@
 - 
 
 ## In Progress
-- 
+- Max customer count
+- Time between customer spawns

@@ -67,10 +67,17 @@ public class SuperDavePlugin : DDPlugin {
 		}
 	}
 
+	[HarmonyPatch(typeof(LightManager), "Awake")]
+	class HarmonyPatch_LightManager_Awake {
+
+		private static void Postfix(LightManager __instance) {
+			__instance.m_TimerLerpSpeed = -2f;
+		}
+	}
+
 	/*
 	[HarmonyPatch(typeof(), "")]
 	class HarmonyPatch_ {
-
 		private static bool Prefix() {
 			
 			return true;
@@ -79,7 +86,6 @@ public class SuperDavePlugin : DDPlugin {
 
 	[HarmonyPatch(typeof(), "")]
 	class HarmonyPatch_ {
-
 		private static void Postfix() {
 			
 		}
