@@ -1,4 +1,19 @@
-﻿# 0.0.2
+﻿# 0.0.3
+
+## Features
+- Modified "Exact Change" setting to not force customer to use cash but just exact change
+- Added Setting: Auto-populate credit card window with correct amount
+
+## Bug Fixes
+- 
+
+## In Progress
+- Mouse rollover customer info
+- Randomize customer animations (stop the synchronized dancing)
+- Max customer count
+- Time between customer spawns
+
+# 0.0.2
 
 ## Features
 - Added setting: Worker walk speed multiplier

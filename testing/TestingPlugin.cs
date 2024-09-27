@@ -71,11 +71,25 @@ public class SuperDavePlugin : DDPlugin {
 	class HarmonyPatch_LightManager_Awake {
 
 		private static void Postfix(LightManager __instance) {
-			__instance.m_TimerLerpSpeed = -2f;
-		}
+			__instance.m_TimerLerpSpeed = 0f; //-2f;
+
+            TextMeshProUGUI template = GameUIScreen.Instance.m_ShopLevelText;
+			TextMeshProUGUI info_text = GameObject.Instantiate<TextMeshProUGUI>(template, template.transform.parent);
+			info_text.transform.localPosition += Vector3.down * 50;
+			info_text.name = "CustomCustomers_Rollover_Info_Text";
+			info_text.text = "Hello there!!!!!!";
+			info_text.gameObject.SetActive(true);
+        }
 	}
 
-	/*
+    [HarmonyPatch(typeof(WorkerManager), "GetWorkerData")]
+    class HarmonyPatch_WorkerManager_GetWorkerData {
+        private static void Postfix(WorkerData __result) {
+			__result.shopLevelRequired = 0;
+        }
+    }
+
+    /*
 	[HarmonyPatch(typeof(), "")]
 	class HarmonyPatch_ {
 		private static bool Prefix() {
