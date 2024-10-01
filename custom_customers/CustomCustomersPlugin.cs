@@ -62,17 +62,17 @@ public class CustomCustomersPlugin : DDPlugin {
 			}
 		}
 	}
-
+	
 	public class __Testing__ {
-		[HarmonyPatch(typeof(CustomerManager), "GetCustomerBuyItemChance")]
+		//[HarmonyPatch(typeof(CustomerManager), "GetCustomerBuyItemChance")]
 		class HarmonyPatch_CustomerManager_GetCustomerBuyItemChance {
 			private static void Postfix(float currentPrice, float marketPrice, ref int __result) {
-				DDPlugin._debug_log($"currentPrice: {currentPrice}, marketPrice: {marketPrice}, buyItemChance: {__result}");
-				__result = 100;
+                __result = 100;
+                DDPlugin._debug_log($"currentPrice: {currentPrice}, marketPrice: {marketPrice}, buyItemChance: {__result}");
 			}
 		}
 
-		[HarmonyPatch(typeof(Customer), "TakeItemFromShelf")]
+		//[HarmonyPatch(typeof(Customer), "TakeItemFromShelf")]
 		class HarmonyPatch_Customer_TakeItemFromShelf {
 
 			const int MIN_VOLUME = 100;
@@ -159,7 +159,6 @@ public class CustomCustomersPlugin : DDPlugin {
 			}
 		}
 
-		/*
 		[HarmonyPatch(typeof(Customer), "ActivateCustomer")]
 		class HarmonyPatch_Customer_ActivateCustomer {
 
@@ -192,8 +191,7 @@ public class CustomCustomersPlugin : DDPlugin {
 				//__instance.gameObject.AddComponent<CustomCustomers_FuzzifyAnimator>().m_customer = __instance;
 			}
 		}
-		*/
-
+		
 		public static void hotkey_triggered_test_method() {
 			DDPlugin._debug_log("-- hotkey_triggered_test_method --");
 			foreach (Shelf shelf in ShelfManager.GetShelfList()) {

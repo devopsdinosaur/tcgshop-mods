@@ -57,11 +57,9 @@ class Hotkeys {
             if (!is_modifier_hotkey_down()) {
                 return;
             }
-            if (is_hotkey_down(HOTKEY_DEBUG)) {
-                DDPlugin._debug_log(Time.time);
-                UnityUtils.list_stack(DDPlugin._debug_log);
-                CustomCustomersPlugin.__Testing__.hotkey_triggered_test_method();
-            }
+            //if (is_hotkey_down(HOTKEY_DEBUG)) {
+            //    CustomCustomersPlugin.__Testing__.hotkey_triggered_test_method();
+            //}
         }
     }
 }
