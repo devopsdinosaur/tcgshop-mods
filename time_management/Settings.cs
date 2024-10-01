@@ -25,15 +25,14 @@ public class Settings {
     public static ConfigEntry<string> m_hotkey_time_stop_toggle;
     public static ConfigEntry<string> m_hotkey_time_speed_up;
     public static ConfigEntry<string> m_hotkey_time_speed_down;
-    public static ConfigEntry<string> m_hotkey_time_reverse_toggle;
 
     public void load(DDPlugin plugin) {
         this.m_plugin = plugin;
 
         // General
         m_enabled = this.m_plugin.Config.Bind<bool>("General", "Enabled", true, "Set to false to disable this mod.");
-        m_time_speed = this.m_plugin.Config.Bind<float>("General", "Initial Time Scale", 1.0f, "Initial time scale (float, default 1 [game default time scale], > 1 faster clock, < 1 slower clock)");
-        m_time_speed_delta = this.m_plugin.Config.Bind<float>("General", "Time Scale Delta", 0.1f, "Change in time scale with each up/down hotkey tick (float).");
+        m_time_speed = this.m_plugin.Config.Bind<float>("General", "Initial Time Scale", 1.0f, "Initial time scale (float, default 1 [game default time scale], > 1 faster clock, < 1 slower clock, < 0 reverse time)");
+        m_time_speed_delta = this.m_plugin.Config.Bind<float>("General", "Time Scale Delta", 0.25f, "Change in time scale with each up/down hotkey tick (float, default 0.25).");
         m_twenty_four_hour_format = this.m_plugin.Config.Bind<bool>("General", "24-hour Time Format", false, "If true then display time in 24-hour format, if false then display as game default AM/PM.");
         m_day_begin_hour = this.m_plugin.Config.Bind<int>("General", "Day Begin Hour", 8, "First hour of a new day (int, between 0 [midnight] and 23 [11pm], default 8 [8am]).");
         m_day_end_hour = this.m_plugin.Config.Bind<int>("General", "Day End Hour", 21, "Store opening hour (int, between 0 [midnight] and 23 [11pm], default 21 [9pm]).");
@@ -43,6 +42,5 @@ public class Settings {
         m_hotkey_time_stop_toggle = this.m_plugin.Config.Bind<string>("Hotkeys", "Time Start/Stop Toggle Hotkey", "Alpha0,Keypad0", "Comma-separated list of Unity Keycodes, any of which will toggle the passage of time.  See this link for valid Unity KeyCode strings (https://docs.unity3d.com/ScriptReference/KeyCode.html)");
         m_hotkey_time_speed_up = this.m_plugin.Config.Bind<string>("Hotkeys", "Time Scale Increment Hotkey", "Equals,KeypadPlus", "Comma-separated list of Unity Keycodes, any of which will increase the time speed.  See this link for valid Unity KeyCode strings (https://docs.unity3d.com/ScriptReference/KeyCode.html)");
         m_hotkey_time_speed_down = this.m_plugin.Config.Bind<string>("Hotkeys", "Time Scale Decrement Hotkey", "Minus,KeypadMinus", "Comma-separated list of Unity Keycodes, any of which will decrease the time speed.  See this link for valid Unity KeyCode strings (https://docs.unity3d.com/ScriptReference/KeyCode.html)");
-        m_hotkey_time_reverse_toggle = this.m_plugin.Config.Bind<string>("Hotkeys", "Time Reverse Toggle Hotkey", "Home", "Comma-separated list of Unity Keycodes, any of which will toggle reverse/forward time change.  See this link for valid Unity KeyCode strings (https://docs.unity3d.com/ScriptReference/KeyCode.html)");
     }
 }

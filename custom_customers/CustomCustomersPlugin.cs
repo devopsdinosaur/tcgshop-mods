@@ -13,7 +13,7 @@ public static class PluginInfo {
 	public const string NAME = "custom_customers";
 	public const string SHORT_DESCRIPTION = "Configurable tweaks (walk speed, exact change, spending money, etc) to customers to improve quality of life for your shop!";
 
-	public const string VERSION = "0.0.4";
+	public const string VERSION = "0.0.5";
 
 	public const string AUTHOR = "devopsdinosaur";
 	public const string GAME_TITLE = "TCG Shop Simulator";
@@ -64,7 +64,7 @@ public class CustomCustomersPlugin : DDPlugin {
 	}
 	
 	public class __Testing__ {
-		//[HarmonyPatch(typeof(CustomerManager), "GetCustomerBuyItemChance")]
+		[HarmonyPatch(typeof(CustomerManager), "GetCustomerBuyItemChance")]
 		class HarmonyPatch_CustomerManager_GetCustomerBuyItemChance {
 			private static void Postfix(float currentPrice, float marketPrice, ref int __result) {
                 __result = 100;
@@ -72,7 +72,7 @@ public class CustomCustomersPlugin : DDPlugin {
 			}
 		}
 
-		//[HarmonyPatch(typeof(Customer), "TakeItemFromShelf")]
+		[HarmonyPatch(typeof(Customer), "TakeItemFromShelf")]
 		class HarmonyPatch_Customer_TakeItemFromShelf {
 
 			const int MIN_VOLUME = 100;
@@ -234,36 +234,6 @@ public class CustomCustomersPlugin : DDPlugin {
 				return true;
 			}
 		}
-
-		/*
-		[HarmonyPatch(typeof(InteractableCustomerCash), "SetIsCard")]
-		class HarmonyPatch_InteractableCustomerCash_SetIsCard {
-			private static bool Prefix(ref bool isCard) {
-				if (Settings.m_enabled.Value) {
-					if (Settings.m_always_exact_change.Value) {
-						isCard = false;
-					} else if (Settings.m_auto_populate_credit.Value) {
-						isCard = true;
-					}
-				}
-				return true;
-			}
-		}
-
-		[HarmonyPatch(typeof(InteractableCashierCounter), "SetCustomerPaidAmount")]
-		class HarmonyPatch_InteractableCashierCounter_SetCustomerPaidAmount {
-			private static bool Prefix(ref bool isUseCard) {
-				if (Settings.m_enabled.Value) {
-					if (Settings.m_always_exact_change.Value) {
-						isUseCard = false;
-					} else if (Settings.m_auto_populate_credit.Value) {
-						isUseCard = true;
-					}
-				}
-				return true;
-			}
-		}
-		*/
 
         [HarmonyPatch(typeof(UI_CreditCardScreen), "EnableCreditCardMode")]
         class HarmonyPatch_UI_CreditCardScreen_EnableCreditCardMode {

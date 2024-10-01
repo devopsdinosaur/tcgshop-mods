@@ -1,4 +1,17 @@
-﻿# 0.0.4
+﻿# 0.0.5
+
+## Features
+- 
+
+## Bug Fixes
+- 
+
+## In Progress
+- Credit machine pre-population does not work with non-USD
+- Randomize customer animations (stop the synchronized dancing)
+- Add ability to adjust odds of buying and item amounts
+
+# 0.0.4
 
 ## Features
 - Added mouse rollover customer info (see settings section on Nexus webpage for info)
