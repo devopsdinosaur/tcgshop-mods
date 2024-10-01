@@ -204,7 +204,9 @@ public static class UnityUtils {
 
 public static class ReflectionUtils {
 
-    public const BindingFlags BINDING_FLAGS_ALL = (BindingFlags) 65535;
+    public const BindingFlags BINDING_FLAGS_ALL = BindingFlags.Instance | 
+        BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic |
+        BindingFlags.FlattenHierarchy | BindingFlags.InvokeMethod | BindingFlags.CreateInstance;
 
     public static string list_members(object obj) {
         List<string> lines = new List<string>();
@@ -465,6 +467,7 @@ public class PluginUpdater : MonoBehaviour {
         };
         this.m_actions = new_actions;
         m_is_dirty = true;
+        DDPlugin._debug_log(this.m_actions.Length);
     }
 
     public void unregister(string name) {

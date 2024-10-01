@@ -1,4 +1,19 @@
-﻿# 0.0.3
+﻿# 0.0.4
+
+## Features
+- Added mouse rollover customer info (see settings section on Nexus webpage for info)
+- Added Setting: Spawn Frequency Multplier
+- Added Setting: Spawn Max Count
+- Removed Worker Walk Speed Multiplier (use goodluckNito's "Custom Workers" mod)
+
+## Bug Fixes
+- 
+
+## In Progress
+- Randomize customer animations (stop the synchronized dancing)
+- Add ability to adjust odds of buying and item amounts
+
+# 0.0.3
 
 ## Features
 - Modified "Exact Change" setting to not force customer to use cash but just exact change

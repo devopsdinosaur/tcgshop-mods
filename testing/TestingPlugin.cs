@@ -35,7 +35,7 @@ public static class PluginInfo {
 }
 
 [BepInPlugin(PluginInfo.GUID, PluginInfo.TITLE, PluginInfo.VERSION)]
-public class SuperDavePlugin : DDPlugin {
+public class TestingPlugin : DDPlugin {
 	private Harmony m_harmony = new Harmony(PluginInfo.GUID);
 
 	private void Awake() {
@@ -48,48 +48,71 @@ public class SuperDavePlugin : DDPlugin {
 		}
 	}
 
-	[HarmonyPatch(typeof(Customer), "IsSmelly")]
-	class HarmonyPatch_Customer_IsSmelly {
+	class Smelliness {
+		[HarmonyPatch(typeof(Customer), "IsSmelly")]
+		class HarmonyPatch_Customer_IsSmelly {
 
-		private static bool Prefix(ref bool __result) {
-			__result = false;
-			return false;
+			private static bool Prefix(ref bool __result) {
+				__result = false;
+				return false;
+			}
+		}
+
+		[HarmonyPatch(typeof(Customer), "SetSmelly")]
+		class HarmonyPatch_Customer_SetSmelly {
+
+			private static bool Prefix(ref bool ___m_IsSmelly, ref int ___m_SmellyMeter) {
+				___m_IsSmelly = false;
+				___m_SmellyMeter = 0;
+				return false;
+			}
 		}
 	}
 
-	[HarmonyPatch(typeof(Customer), "SetSmelly")]
-	class HarmonyPatch_Customer_SetSmelly {
+	class __Worker__ {
+		[HarmonyPatch(typeof(WorkerManager), "GetWorkerData")]
+		class HarmonyPatch_WorkerManager_GetWorkerData {
+			private static void Postfix(WorkerData __result) {
+				__result.shopLevelRequired = 0;
+			}
+		}
 
-		private static bool Prefix(ref bool ___m_IsSmelly, ref int ___m_SmellyMeter) {
-			___m_IsSmelly = false;
-			___m_SmellyMeter = 0;
-			return false;
+		private static bool set_speed_multiplier(ref float ___m_ExtraSpeedMultiplier) {
+			___m_ExtraSpeedMultiplier = 3;
+			return true;
+		}
+
+		[HarmonyPatch(typeof(Worker), "EvaluateWorkerAttribute")]
+		class HarmonyPatch_Worker_EvaluateWorkerAttribute {
+			private static void Postfix(ref float ___m_ExtraSpeedMultiplier) {
+				set_speed_multiplier(ref ___m_ExtraSpeedMultiplier);
+			}
+		}
+
+		[HarmonyPatch(typeof(Worker), "SetExtraSpeedMultiplier")]
+		class HarmonyPatch_Worker_SetExtraSpeedMultiplier {
+			private static bool Prefix(Worker __instance, ref float ___m_ExtraSpeedMultiplier) {
+				return !set_speed_multiplier(ref ___m_ExtraSpeedMultiplier);
+			}
+		}
+
+		[HarmonyPatch(typeof(Worker), "ResetExtraSpeedMultiplier")]
+		class HarmonyPatch_Worker_ResetExtraSpeedMultiplier {
+			private static bool Prefix(ref float ___m_ExtraSpeedMultiplier) {
+				return !set_speed_multiplier(ref ___m_ExtraSpeedMultiplier);
+			}
+		}
+
+		[HarmonyPatch(typeof(Worker), "Update")]
+		class HarmonyPatch_Worker_Update {
+			private static bool Prefix(ref float ___m_ExtraSpeedMultiplier) {
+				set_speed_multiplier(ref ___m_ExtraSpeedMultiplier);
+				return true;
+			}
 		}
 	}
 
-	[HarmonyPatch(typeof(LightManager), "Awake")]
-	class HarmonyPatch_LightManager_Awake {
-
-		private static void Postfix(LightManager __instance) {
-			__instance.m_TimerLerpSpeed = 0f; //-2f;
-
-            TextMeshProUGUI template = GameUIScreen.Instance.m_ShopLevelText;
-			TextMeshProUGUI info_text = GameObject.Instantiate<TextMeshProUGUI>(template, template.transform.parent);
-			info_text.transform.localPosition += Vector3.down * 50;
-			info_text.name = "CustomCustomers_Rollover_Info_Text";
-			info_text.text = "Hello there!!!!!!";
-			info_text.gameObject.SetActive(true);
-        }
-	}
-
-    [HarmonyPatch(typeof(WorkerManager), "GetWorkerData")]
-    class HarmonyPatch_WorkerManager_GetWorkerData {
-        private static void Postfix(WorkerData __result) {
-			__result.shopLevelRequired = 0;
-        }
-    }
-
-    /*
+	/*
 	[HarmonyPatch(typeof(), "")]
 	class HarmonyPatch_ {
 		private static bool Prefix() {

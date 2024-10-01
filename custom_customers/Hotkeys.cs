@@ -12,19 +12,13 @@ class Hotkeys {
         }
     }
     private const int HOTKEY_MODIFIER = 0;
-    private const int HOTKEY_TIME_STOP_TOGGLE = 1;
-    private const int HOTKEY_TIME_SPEED_UP = 2;
-    private const int HOTKEY_TIME_SPEED_DOWN = 3;
-    private const int HOTKEY_TIME_REVERSE_TOGGLE = 4;
+    private const int HOTKEY_DEBUG = 1;
     private static Dictionary<int, List<KeyCode>> m_hotkeys = null;
 
     public static void load() {
         m_hotkeys = new Dictionary<int, List<KeyCode>>();
-        set_hotkey(Settings.m_hotkey_modifier.Value, HOTKEY_MODIFIER);
-        set_hotkey(Settings.m_hotkey_time_stop_toggle.Value, HOTKEY_TIME_STOP_TOGGLE);
-        set_hotkey(Settings.m_hotkey_time_speed_up.Value, HOTKEY_TIME_SPEED_UP);
-        set_hotkey(Settings.m_hotkey_time_speed_down.Value, HOTKEY_TIME_SPEED_DOWN);
-        set_hotkey(Settings.m_hotkey_time_reverse_toggle.Value, HOTKEY_TIME_REVERSE_TOGGLE);
+        set_hotkey("", HOTKEY_MODIFIER);
+        set_hotkey("F8", HOTKEY_DEBUG);
     }
 
     private static void set_hotkey(string keys_string, int key_index) {
@@ -63,7 +57,11 @@ class Hotkeys {
             if (!is_modifier_hotkey_down()) {
                 return;
             }
-            
+            if (is_hotkey_down(HOTKEY_DEBUG)) {
+                DDPlugin._debug_log(Time.time);
+                UnityUtils.list_stack(DDPlugin._debug_log);
+                CustomCustomersPlugin.__Testing__.hotkey_triggered_test_method();
+            }
         }
     }
 }

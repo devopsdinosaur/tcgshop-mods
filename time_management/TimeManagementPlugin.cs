@@ -39,7 +39,6 @@ public class TimeManagementPlugin : DDPlugin {
 			this.plugin_info = PluginInfo.to_dict();
 			this.create_nexus_page();
 			this.m_harmony.PatchAll();
-			PluginUpdater.create(this.gameObject, logger);
 			logger.LogInfo($"{PluginInfo.GUID} v{PluginInfo.VERSION} loaded.");
 		} catch (Exception e) {
 			logger.LogError("** Awake FATAL - " + e);
