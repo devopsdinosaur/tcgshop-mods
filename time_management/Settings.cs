@@ -34,8 +34,20 @@ public class Settings {
         m_time_speed = this.m_plugin.Config.Bind<float>("General", "Initial Time Scale", 1.0f, "Initial time scale (float, default 1 [game default time scale], > 1 faster clock, < 1 slower clock, < 0 reverse time)");
         m_time_speed_delta = this.m_plugin.Config.Bind<float>("General", "Time Scale Delta", 0.25f, "Change in time scale with each up/down hotkey tick (float, default 0.25).");
         m_twenty_four_hour_format = this.m_plugin.Config.Bind<bool>("General", "24-hour Time Format", false, "If true then display time in 24-hour format, if false then display as game default AM/PM.");
-        m_day_begin_hour = this.m_plugin.Config.Bind<int>("General", "Day Begin Hour", 8, "First hour of a new day (int, between 0 [midnight] and 23 [11pm], default 8 [8am]).");
-        m_day_end_hour = this.m_plugin.Config.Bind<int>("General", "Day End Hour", 21, "Store opening hour (int, between 0 [midnight] and 23 [11pm], default 21 [9pm]).");
+        m_day_begin_hour = this.m_plugin.Config.Bind<int>("General", "Day Begin Hour", 8, "First hour of a new day (int, between 0 [midnight] and 22 [10pm], default 8 [8am]).");
+        m_day_end_hour = this.m_plugin.Config.Bind<int>("General", "Day End Hour", 21, "Store closing hour (int, between 1 [1am] and 23 [11pm], default 21 [9pm]).  If Day End Hour is >= Day Begin Hour then both will reset to game defaults.");
+        if (m_day_begin_hour.Value < 0 || m_day_begin_hour.Value > 22) {
+            m_day_begin_hour.Value = 8;
+        }
+        if (m_day_end_hour.Value <= 0 || m_day_end_hour.Value > 23) {
+            m_day_end_hour.Value = 21;
+        }
+        if (m_day_begin_hour.Value >= m_day_end_hour.Value) {
+            m_day_begin_hour.Value = 8;
+            m_day_end_hour.Value = 21;
+        }
+        DDPlugin._info_log($"Day Begin Hour: {m_day_begin_hour.Value}");
+        DDPlugin._info_log($"Day End Hour: {m_day_end_hour.Value}");
 
         // Hotkeys
         m_hotkey_modifier = this.m_plugin.Config.Bind<string>("Hotkeys", "Hotkey - Modifier", "LeftControl,RightControl", "Comma-separated list of Unity Keycodes used as the special modifier key (i.e. ctrl,alt,command) one of which is required to be down for hotkeys to work.  Set to '' (blank string) to not require a special key (not recommended).  See this link for valid Unity KeyCode strings (https://docs.unity3d.com/ScriptReference/KeyCode.html)");

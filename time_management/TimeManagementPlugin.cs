@@ -65,12 +65,17 @@ public class TimeManagementPlugin : DDPlugin {
     }
 
 	public class GameClock {
-		public enum TimeOfDayIndex {
-			Morning,
-			Afternoon,
-			Evening,
-			Night,
-			DayEnd
+		public const int TODI_MORNING = 0;
+		public const int TODI_AFTERNOON = 1;
+		public const int TODI_EVENING = 2;
+		public const int TODI_NIGHT = 3;
+		public const int TODI_DAY_END = 4;
+		public static string[] TODI_STRINGS = {
+			"Morning",
+			"Afternoon",
+			"Evening",
+			"Night",
+			"Day End"
 		};
 
 		public static bool m_is_time_stopped = false;
@@ -89,9 +94,46 @@ public class TimeManagementPlugin : DDPlugin {
 			m_time_speed_text.gameObject.SetActive(true);
 		}
 
-        [HarmonyPatch(typeof(LightManager), "EvaluateTimeClock")]
+		private static bool ensure_time_of_day_index(int todi, ref int ___m_TImeOfDayIndex, LightManager __instance, int ___m_TimeHour, int ___m_TimeMin) {
+			if (___m_TImeOfDayIndex == todi) {
+				DDPlugin._debug_log($"[Current Game Time: {___m_TimeHour:D2}:{___m_TimeMin:D2}] ___m_TImeOfDayIndex == todi == {todi}");
+				return false;
+			}
+			__instance.m_TimeOfDayString = TODI_STRINGS[(___m_TImeOfDayIndex = todi)];
+			DDPlugin._debug_log($"[Current Game Time: {___m_TimeHour:D2}:{___m_TimeMin:D2}] Time of Day Index changed to '{__instance.m_TimeOfDayString}' [{___m_TImeOfDayIndex}]");
+			return true;
+		}
+
+		[HarmonyPatch(typeof(LightManager), "ResetSunlightIntensity")]
+		class HarmonyPatch_LightManager_ResetSunlightIntensity {
+			private static bool Prefix(LightManager __instance, bool ___m_FinishLoading, bool ___m_IsShopLightOn, ref float ___m_ShopLightOnTimer, bool ___m_HasDayEnded, ref float ___m_TimeMinFloat, ref int ___m_TimeMin, ref int ___m_TimeHour, ref float ___m_SunlightRotationLerpTimer, ref bool ___m_IsBlendingSkybox, ref bool ___m_IsStopBlendingSkybox, ref float ___m_Timer, ref int ___m_SkyboxIndex) {
+				try {
+					if (!Settings.m_enabled.Value) {
+						return true;
+					}
+					__instance.m_SkyboxBlender.Blend(0);
+					__instance.m_SkyboxBlender.blendValue = 1f;
+					___m_IsShopLightOn = false;
+					__instance.m_SunlightGrp.SetActive(value: true);
+					__instance.m_ShoplightGrp.SetActive(value: false);
+					__instance.m_NightlightGrp.SetActive(value: false);
+					ReflectionUtils.invoke_method(__instance, "EvaluateWorldUIBrightness");
+					StartCoroutine(delay_update_env());
+					return false;
+				} catch (Exception e) {
+					DDPlugin._error_log("** HarmonyPatch_LightManager_EvaluateTimeClock.Prefix ERROR - " + e);
+				}
+				return true;
+			}
+
+			private static IEnumerator delay_update_env() {
+
+			}
+		}
+
+		[HarmonyPatch(typeof(LightManager), "EvaluateTimeClock")]
         class HarmonyPatch_LightManager_EvaluateTimeClock {
-            private static bool Prefix(LightManager __instance, ref float ___m_TimeMinFloat, ref int ___m_TimeMin, ref int ___m_TimeHour, ref int ___m_TImeOfDayIndex, ref bool ___m_IsLerpingSunIntensity, ref float ___m_LerpStartBrightness, float ___m_GlobalBrightness, ref bool ___m_HasDayEnded) {
+            private static bool Prefix(LightManager __instance, ref float ___m_TimeMinFloat, ref int ___m_TimeMin, ref int ___m_TimeHour, ref int ___m_TImeOfDayIndex, ref bool ___m_IsLerpingSunIntensity, ref float ___m_LerpStartBrightness, float ___m_GlobalBrightness, ref bool ___m_HasDayEnded, ref bool ___m_IsSunLightOn) {
                 try {
                     if (!Settings.m_enabled.Value) {
                         return true;
@@ -102,43 +144,41 @@ public class TimeManagementPlugin : DDPlugin {
                     );
 					ensure_tooltip_object();
 					m_time_speed_text.text = $"[Time Speed: {Settings.m_time_speed.Value:#0.00}s/m{(m_is_time_stopped ? " |Stopped|" : "")}]";
+					/*
 					if (___m_TimeHour == Settings.m_day_end_hour.Value) {
-						if (___m_TImeOfDayIndex == ) {
-						__instance.m_TimeOfDayString = "Day End";
-						___m_HasDayEnded = true;
-						___m_TImeOfDayIndex = 4;
-						m_IsLerpingSunIntensity = false;
-						m_SkyboxBlender.rotationSpeed = 0f;
-						CEventManager.QueueEvent(new CEventPlayer_OnDayEnded());
+						if (ensure_time_of_day_index(TODI_DAY_END, ref ___m_TImeOfDayIndex, __instance, ___m_TimeHour, ___m_TimeMin)) {
+							___m_HasDayEnded = true;
+							___m_IsSunLightOn = false;
+							___m_IsLerpingSunIntensity = false;
+							__instance.m_SkyboxBlender.rotationSpeed = 0f;
+							CEventManager.QueueEvent(new CEventPlayer_OnDayEnded());
+						}
 					} else if (___m_TimeHour > 4 && ___m_TimeHour < 12) {
-						if (___m_TImeOfDayIndex != 0) {
-							__instance.m_TimeOfDayString = "Morning";
-							___m_TImeOfDayIndex = 0;
+						if (ensure_time_of_day_index(TODI_MORNING, ref ___m_TImeOfDayIndex, __instance, ___m_TimeHour, ___m_TimeMin)) {
+							___m_IsSunLightOn = true;
 							___m_IsLerpingSunIntensity = false;
 							SoundManager.BlendToMusic("BGM_ShopDay", 1f, isLinearBlend: true);
 						}
 					} else if (___m_TimeHour >= 12 && ___m_TimeHour < 16) {
-						if (___m_TImeOfDayIndex != 1) {
-							__instance.m_TimeOfDayString = "Afternoon";
-							___m_TImeOfDayIndex = 1;
+						if (ensure_time_of_day_index(TODI_AFTERNOON, ref ___m_TImeOfDayIndex, __instance, ___m_TimeHour, ___m_TimeMin)) {
+							___m_IsSunLightOn = true;
 							___m_IsLerpingSunIntensity = false;
 						}
 					} else if (___m_TimeHour >= 16 && ___m_TimeHour < 19) {
-						if (___m_TImeOfDayIndex != 2) {
-							__instance.m_TimeOfDayString = "Evening";
-							___m_TImeOfDayIndex = 2;
+						if (ensure_time_of_day_index(TODI_EVENING, ref ___m_TImeOfDayIndex, __instance, ___m_TimeHour, ___m_TimeMin)) {
+							___m_IsSunLightOn = true;
 							___m_IsLerpingSunIntensity = true;
 							___m_LerpStartBrightness = ___m_GlobalBrightness;
 							SoundManager.BlendToMusic("BGM_ShopNight", 0.1f, isLinearBlend: true);
 						}
 					} else if (___m_TimeHour <= 4 || ___m_TimeHour >= 19) {
-						if (___m_TImeOfDayIndex != 3) {
-							__instance.m_TimeOfDayString = "Night";
-							___m_TImeOfDayIndex = 3;
+						if (ensure_time_of_day_index(TODI_NIGHT, ref ___m_TImeOfDayIndex, __instance, ___m_TimeHour, ___m_TimeMin)) {
+							___m_IsSunLightOn = false;
 							___m_IsLerpingSunIntensity = true;
 							___m_LerpStartBrightness = ___m_GlobalBrightness;
 						}
 					}
+					*/
                     return false;
                 } catch (Exception e) {
                     DDPlugin._error_log("** HarmonyPatch_LightManager_EvaluateTimeClock.Prefix ERROR - " + e);
@@ -161,17 +201,14 @@ public class TimeManagementPlugin : DDPlugin {
                     if (___m_IsShopLightOn) {
                         ___m_ShopLightOnTimer += Time.deltaTime;
                     }
-                    if (!CPlayerData.m_IsShopOnceOpen || ___m_HasDayEnded) {
-                        return false;
-                    }
-					if (___m_TimeHour < Settings.m_day_begin_hour.Value) {
+                    if (___m_TimeHour < Settings.m_day_begin_hour.Value) {
 						___m_TimeMinFloat = 0;
 						___m_TimeHour = Settings.m_day_begin_hour.Value;
 					} else if (___m_TimeHour >= Settings.m_day_end_hour.Value) {
 						___m_TimeMinFloat = 0;
 						___m_TimeHour = Settings.m_day_end_hour.Value;
 					}
-					__instance.m_TimerLerpSpeed = (m_is_time_stopped ? 0 : (Settings.m_time_speed.Value < 0 ?
+					__instance.m_TimerLerpSpeed = (m_is_time_stopped || !CPlayerData.m_IsShopOnceOpen || ___m_HasDayEnded ? 0 : (Settings.m_time_speed.Value < 0 ?
 						(___m_TimeHour == Settings.m_day_begin_hour.Value && ___m_TimeMinFloat <= 0 ? 0 : Settings.m_time_speed.Value) :
                         (___m_TimeHour == Settings.m_day_end_hour.Value ? 0 : Settings.m_time_speed.Value)
                     ));
@@ -191,8 +228,13 @@ public class TimeManagementPlugin : DDPlugin {
                     ReflectionUtils.invoke_method(__instance, "EvaluateTimeClock");
                     ReflectionUtils.invoke_method(__instance, "EvaluateLerpSunIntensity");
                     ___m_SunlightRotationLerpTimer += Time.deltaTime * 0.0013888889f * __instance.m_TimerLerpSpeed;
-                    __instance.m_Sunlight.rotation = Quaternion.Lerp(__instance.m_SunlightLerpStartPos.rotation, __instance.m_SunlightLerpEndPos.rotation, ___m_SunlightRotationLerpTimer);
-                    __instance.m_SkyboxBlender.rotationSpeed = __instance.m_SkyboxRotateSpeed * __instance.m_TimerLerpSpeed;
+                    __instance.m_SunlightGrp.SetActive(true);
+					int total_minutes = ___m_TimeHour * 60 + ___m_TimeMin;
+					float degrees = Mathf.Lerp(0, 360, total_minutes / 1440);
+					DDPlugin._debug_log($"{degrees}");
+					//Quaternion rotation = Quaternion.Euler(
+					__instance.m_Sunlight.rotation = __instance.m_SunlightLerpStartPos.rotation; //Quaternion.Lerp(__instance.m_SunlightLerpStartPos.rotation, __instance.m_SunlightLerpEndPos.rotation, ___m_SunlightRotationLerpTimer);
+					__instance.m_SkyboxBlender.rotationSpeed = __instance.m_SkyboxRotateSpeed * __instance.m_TimerLerpSpeed;
                     if (!___m_IsBlendingSkybox && !___m_IsStopBlendingSkybox) {
                         ___m_Timer += Time.deltaTime * __instance.m_TimerLerpSpeed;
                         if (___m_Timer > __instance.m_TimeTillNextSkybox[___m_SkyboxIndex]) {
@@ -223,75 +265,60 @@ public class TimeManagementPlugin : DDPlugin {
 				return true;
 			}
 		}
-	}
 
-    /*
-	[HarmonyPatch(typeof(LightManager), "EvaluateTimeClock")]
-	class HarmonyPatch_LightManager_EvaluateTimeClock {
-		private static bool Prefix(LightManager __instance, ref int ___m_TimeMin, ref float ___m_TimeMinFloat, ref int ___m_TimeHour) {
-			try {
-				if (!Settings.m_enabled.Value) {
-					return true;
-				}
-				if (___m_TimeMin >= 60) {
-					___m_TimeMinFloat = 0f;
-					___m_TimeMin = 0;
-					if (++___m_TimeHour == 24) {
-						___m_TimeHour = 0;
+		[HarmonyPatch(typeof(LightManager), "EvaluateLerpSunIntensity")]
+		class HarmonyPatch_LightManager_EvaluateLerpSunIntensity {
+			private static bool Prefix(LightManager __instance) {
+				try {
+					if (!Settings.m_enabled.Value) {
+						return true;
 					}
+					DDPlugin._debug_log(".");
+					for (int i = 0; i < __instance.m_SunlightList.Count; i++) {
+						__instance.m_SunlightList[i].intensity = 1f;
+					}
+					return false;
+				} catch (Exception e) {
+					DDPlugin._error_log("** HarmonyPatch_LightManager_EvaluateLerpSunIntensity.Prefix ERROR - " + e);
 				}
-				if (___m_TimeHour == Settings.m_day_end_hour.Value && ___m_TimeMin >= 0) {
-					___m_TimeHour = Settings.m_day_end_hour.Value;
-					___m_TimeMin = 0;
-				}
-
-				string text2 = m_TimeMin.ToString();
-				if (m_TimeMin < 10) {
-					text2 = "0" + m_TimeMin;
-				}
-				int num = m_TimeHour;
-				if (m_TimeHour > 12) {
-					num = m_TimeHour - 12;
-				}
-				string text3 = num.ToString();
-				if (num < 10) {
-					text3 = "0" + num;
-				}
-				m_TimeString = text3 + ":" + text2 + text;
-				if (m_TimeHour == 18 && m_TimeMin == 30) {
-					m_TimeOfDayString = "Night";
-					m_TImeOfDayIndex = 3;
-					m_IsLerpingSunIntensity = true;
-					m_LerpStartBrightness = m_GlobalBrightness;
-				} else if (m_TimeHour == 16 && m_TimeMin == 0) {
-					m_TimeOfDayString = "Evening";
-					m_TImeOfDayIndex = 2;
-					m_IsLerpingSunIntensity = true;
-					m_LerpStartBrightness = m_GlobalBrightness;
-					SoundManager.BlendToMusic("BGM_ShopNight", 0.1f, isLinearBlend: true);
-				} else if (m_TimeHour == 12 && m_TimeMin == 0) {
-					m_TimeOfDayString = "Afternoon";
-					m_TImeOfDayIndex = 1;
-					m_IsLerpingSunIntensity = false;
-				} else if (m_TimeHour == 8 && m_TimeMin == 0) {
-					m_TimeOfDayString = "Morning";
-					m_TImeOfDayIndex = 0;
-					m_IsLerpingSunIntensity = false;
-					m_HasDayEnded = false;
-				} else if (m_TimeHour == 21 && m_TimeMin == 0) {
-					m_TimeOfDayString = "Day End";
-					m_HasDayEnded = true;
-					m_TImeOfDayIndex = 4;
-					m_IsLerpingSunIntensity = false;
-					m_SkyboxBlender.rotationSpeed = 0f;
-					CEventManager.QueueEvent(new CEventPlayer_OnDayEnded());
-				}
-				return false;
-			} catch (Exception e) {
-				DDPlugin._error_log("** HarmonyPatch_LightManager_EvaluateTimeClock ERROR - " + e);
+				return true;
 			}
-			return true;
+		}
+
+		[HarmonyPatch(typeof(LightManager), "EvaluateWorldUIBrightness")]
+		class HarmonyPatch_LightManager_EvaluateWorldUIBrightness {
+			private static bool Prefix(LightManager __instance, ref float ___m_GlobalBrightness, List<float> ___m_OriginalItemLightIntensityList, List<float> ___m_OriginalAmbientLightIntensityList, ref Color ___m_BillboardTargetLerpColor, Color ___m_BillboardTextOriginalColor) {
+				try {
+					if (!Settings.m_enabled.Value) {
+						return true;
+					}
+					
+					___m_GlobalBrightness = 1f;
+
+					___m_GlobalBrightness = Mathf.Clamp(___m_GlobalBrightness, 0f, 1f);
+					for (int i = 0; i < __instance.m_ItemLightList.Count; i++) {
+						__instance.m_ItemLightList[i].intensity = ___m_GlobalBrightness * ___m_OriginalItemLightIntensityList[i];
+					}
+					for (int j = 0; j < __instance.m_AmbientLightList.Count; j++) {
+						__instance.m_AmbientLightList[j].intensity = ___m_GlobalBrightness * ___m_OriginalAmbientLightIntensityList[j];
+					}
+					PriceTagUISpawner.SetAllPriceTagUIBrightness(___m_GlobalBrightness);
+					Card3dUISpawner.SetAllCardUIBrightness(___m_GlobalBrightness);
+					___m_BillboardTargetLerpColor = ___m_BillboardTextOriginalColor * ___m_GlobalBrightness;
+					___m_BillboardTargetLerpColor.a = 1f;
+					__instance.m_BillboardText.color = ___m_BillboardTargetLerpColor;
+					__instance.m_CardBackMat.SetColor("_EmissionColor", __instance.m_CardBackMatOriginalEmissionColor * Mathf.Lerp(0.2f, 1f, ___m_GlobalBrightness));
+					for (int k = 0; k < __instance.m_ItemMatList.Count; k++) {
+						if ((bool) __instance.m_ItemMatList[k]) {
+							__instance.m_ItemMatList[k].SetColor("_Color", __instance.m_ItemMatOriginalColorList[k] * Mathf.Lerp(0.2f, 1f, ___m_GlobalBrightness));
+						}
+					}
+					return false;
+				} catch (Exception e) {
+					DDPlugin._error_log("** HarmonyPatch_LightManager_EvaluateLerpSunIntensity.Prefix ERROR - " + e);
+				}
+				return true;
+			}
 		}
 	}
-	*/
 }
