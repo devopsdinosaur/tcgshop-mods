@@ -15,6 +15,7 @@ class Hotkeys {
     private const int HOTKEY_TIME_STOP_TOGGLE = 1;
     private const int HOTKEY_TIME_SPEED_UP = 2;
     private const int HOTKEY_TIME_SPEED_DOWN = 3;
+    private const int HOTKEY_TIME_SPEED_REVERSE = 4;
     private static Dictionary<int, List<KeyCode>> m_hotkeys = null;
 
     public static void load() {
@@ -23,6 +24,7 @@ class Hotkeys {
         set_hotkey(Settings.m_hotkey_time_stop_toggle.Value, HOTKEY_TIME_STOP_TOGGLE);
         set_hotkey(Settings.m_hotkey_time_speed_up.Value, HOTKEY_TIME_SPEED_UP);
         set_hotkey(Settings.m_hotkey_time_speed_down.Value, HOTKEY_TIME_SPEED_DOWN);
+        set_hotkey(Settings.m_hotkey_time_speed_reverse.Value, HOTKEY_TIME_SPEED_REVERSE);
     }
 
     private static void set_hotkey(string keys_string, int key_index) {
@@ -64,9 +66,11 @@ class Hotkeys {
             if (is_hotkey_down(HOTKEY_TIME_STOP_TOGGLE)) {
                 TimeManagementPlugin.GameClock.m_is_time_stopped = !TimeManagementPlugin.GameClock.m_is_time_stopped;
             } else if (is_hotkey_down(HOTKEY_TIME_SPEED_UP)) {
-                Settings.m_time_speed.Value += Settings.m_time_speed_delta.Value;
+                TimeManagementPlugin.GameClock.set_time_speed(Settings.m_time_speed.Value + Settings.m_time_speed_delta.Value);
             } else if (is_hotkey_down(HOTKEY_TIME_SPEED_DOWN)) {
-                Settings.m_time_speed.Value -= Settings.m_time_speed_delta.Value;
+                TimeManagementPlugin.GameClock.set_time_speed(Settings.m_time_speed.Value - Settings.m_time_speed_delta.Value);
+            } else if (is_hotkey_down(HOTKEY_TIME_SPEED_REVERSE)) {
+                TimeManagementPlugin.GameClock.set_time_speed(-Settings.m_time_speed.Value);
             }
         }
     }
