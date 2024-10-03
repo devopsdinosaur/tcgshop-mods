@@ -63,6 +63,110 @@ public class CustomCustomersPlugin : DDPlugin {
 		}
 	}
 	
+	class CustomerBrainWorm : MonoBehaviour {
+		private Customer m_customer = null;
+		private static bool m_are_all_frozen = false;
+		private bool m_is_frozen = false;
+		private float m_original_speed = 0f;
+		private float m_original_animation_speed = 0f;
+
+		private const int ROUTINE_
+		private Dictionary<int, Coroutine> m_routines = new Dictionary<int, Coroutine>();
+
+		class HarmonyPatches {
+			[HarmonyPatch(typeof(Customer), "ActivateCustomer")]
+			class HarmonyPatch_Customer_ActivateCustomer {
+				private static void Postfix(Customer __instance) {
+					ensure_infected(__instance);
+				}
+			}
+
+			[HarmonyPatch(typeof(Customer), "Update")]
+			class HarmonyPatch_Customer_Update {
+				private static bool Prefix(Customer __instance, Quaternion ___m_TargetLerpRotation, float ___m_RotationLerpSpeed, ref Vector3 ___m_LastFramePos, ref bool ___m_IsCheckScanItemOutOfBound) {
+					return ensure_infected(__instance).update(__instance, ___m_TargetLerpRotation, ___m_RotationLerpSpeed, ref ___m_LastFramePos, ref ___m_IsCheckScanItemOutOfBound);
+				}
+			}
+		}
+
+		public static List<CustomerBrainWorm> ensure_infected() {
+			List<CustomerBrainWorm> result = new List<CustomerBrainWorm>();
+			foreach (Customer customer in Resources.FindObjectsOfTypeAll<Customer>()) {
+				result.Add(ensure_infected(customer));
+			}
+			return result;
+		}
+
+		public static CustomerBrainWorm ensure_infected(Customer customer) {
+			CustomerBrainWorm worm = customer.gameObject.GetComponent<CustomerBrainWorm>();
+			if (worm == null) {
+				worm = customer.gameObject.AddComponent<CustomerBrainWorm>();
+				worm.m_customer = customer;
+			}
+			return worm;
+		}
+
+		public static void toggle_freeze() {
+			m_are_all_frozen = !m_are_all_frozen;
+			foreach (CustomerBrainWorm worm in ensure_infected()) {
+				worm.freeze(m_are_all_frozen);
+			}
+		}
+
+		private void freeze(bool freeze) {
+			if (freeze == this.m_is_frozen) {
+				return;
+			}
+			if (this.m_is_frozen = freeze) {
+				this.m_original_speed = (float) ReflectionUtils.get_field_value(this.m_customer, "m_ExtraSpeedMultiplier");
+				this.m_original_animation_speed = this.m_customer.m_Anim.speed;
+				this.m_customer.SetExtraSpeedMultiplier(0);
+				this.m_customer.m_Anim.speed = 0;
+			} else {
+				this.m_customer.SetExtraSpeedMultiplier(this.m_original_speed);
+				this.m_customer.m_Anim.speed = this.m_original_animation_speed;
+			}
+		}
+
+		public static bool set_speed_multiplier(Customer customer, ref float ___m_ExtraSpeedMultiplier, float extraSpeedMultiplier = 0f) {
+			if (!Settings.m_enabled.Value) {
+				return false;
+			}
+			___m_ExtraSpeedMultiplier = (ensure_infected(customer).m_is_frozen ? 0 : (Settings.m_walk_speed_multiplier.Value != 0 ? Settings.m_walk_speed_multiplier.Value : extraSpeedMultiplier));
+			return Settings.m_walk_speed_multiplier.Value != 0;
+		}
+
+		private float get_delta_time(bool is_fixed = false) {
+			return (this.m_is_frozen ? 0 : (is_fixed ? Time.fixedDeltaTime : Time.deltaTime));
+		}
+
+		private bool update(Customer __instance, Quaternion ___m_TargetLerpRotation, float ___m_RotationLerpSpeed, ref Vector3 ___m_LastFramePos, ref bool ___m_IsCheckScanItemOutOfBound) {
+			try {
+				if (!__instance.m_IsActive) {
+					return false;
+				}
+				float delta_time = this.get_delta_time();
+				float fixed_delta_time = this.get_delta_time(true);
+				__instance.transform.rotation = Quaternion.Lerp(base.transform.rotation, ___m_TargetLerpRotation, fixed_delta_time * ___m_RotationLerpSpeed);
+				__instance.m_CurrentMoveSpeed = (___m_LastFramePos - base.transform.position).magnitude * 50f;
+				___m_LastFramePos = base.transform.position;
+				__instance.m_Anim.SetFloat("MoveSpeed", __instance.m_CurrentMoveSpeed);
+				if (___m_IsCheckScanItemOutOfBound) {
+					___m_IsCheckScanItemOutOfBound = false;
+					this.StartCoroutine(this.update_routine_check_scan_item_out_of_bound());
+				}
+				return false;
+			} catch (Exception e) {
+				DDPlugin._error_log("** CustomerBrainWorm.update ERROR - " + e);
+			}
+			return true;
+		}
+
+		private IEnumerator update_routine_check_scan_item_out_of_bound() {
+			
+		}
+	}
+
 	public class __Testing__ {
 		[HarmonyPatch(typeof(CustomerManager), "GetCustomerBuyItemChance")]
 		class HarmonyPatch_CustomerManager_GetCustomerBuyItemChance {
@@ -212,6 +316,10 @@ public class CustomCustomersPlugin : DDPlugin {
 					compartment.SpawnItem(compartment.GetMaxItemCount() - compartment.GetItemCount(), false);
 				}
 			}
+		}
+
+		public static void hotkey_triggered_test_method_2() {
+			CustomerBrainWorm.toggle_freeze();
 		}
 	}
 
@@ -378,32 +486,28 @@ Item Total: {this.m_customer.m_CurrentCostTotal:#0.00}";
 	}
 
 	class WalkSpeed {
-		private static bool set_speed_multiplier(ref float ___m_ExtraSpeedMultiplier) {
-			if (Settings.m_enabled.Value && Settings.m_walk_speed_multiplier.Value > 0) {
-				___m_ExtraSpeedMultiplier = Settings.m_walk_speed_multiplier.Value;
-				return true;
-			}
-			return false;
+		private static bool set_speed_multiplier(Customer __instance, ref float ___m_ExtraSpeedMultiplier, float extraSpeedMultiplier = 0f) {
+			return !CustomerBrainWorm.set_speed_multiplier(__instance, ref ___m_ExtraSpeedMultiplier, extraSpeedMultiplier);
 		}
 
 		[HarmonyPatch(typeof(Customer), "SetExtraSpeedMultiplier")]
 		class HarmonyPatch_Customer_SetExtraSpeedMultiplier {
-			private static bool Prefix(ref float ___m_ExtraSpeedMultiplier) {
-				return !set_speed_multiplier(ref ___m_ExtraSpeedMultiplier);
+			private static bool Prefix(Customer __instance, float extraSpeedMultiplier, ref float ___m_ExtraSpeedMultiplier) {
+				return !set_speed_multiplier(__instance, ref ___m_ExtraSpeedMultiplier, extraSpeedMultiplier);
 			}
 		}
 
 		[HarmonyPatch(typeof(Customer), "ResetExtraSpeedMultiplier")]
 		class HarmonyPatch_Customer_ResetExtraSpeedMultiplier {
-			private static bool Prefix(ref float ___m_ExtraSpeedMultiplier) {
-				return !set_speed_multiplier(ref ___m_ExtraSpeedMultiplier);
+			private static bool Prefix(Customer __instance, ref float ___m_ExtraSpeedMultiplier) {
+				return !set_speed_multiplier(__instance, ref ___m_ExtraSpeedMultiplier);
 			}
 		}
 
 		[HarmonyPatch(typeof(Customer), "Update")]
 		class HarmonyPatch_Customer_Update {
-			private static bool Prefix(ref float ___m_ExtraSpeedMultiplier) {
-				set_speed_multiplier(ref ___m_ExtraSpeedMultiplier);
+			private static bool Prefix(Customer __instance, ref float ___m_ExtraSpeedMultiplier) {
+				set_speed_multiplier(__instance, ref ___m_ExtraSpeedMultiplier);
 				return true;
 			}
 		}

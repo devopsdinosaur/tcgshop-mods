@@ -13,12 +13,14 @@ class Hotkeys {
     }
     private const int HOTKEY_MODIFIER = 0;
     private const int HOTKEY_DEBUG = 1;
+    private const int HOTKEY_DEBUG2 = 2;
     private static Dictionary<int, List<KeyCode>> m_hotkeys = null;
 
     public static void load() {
         m_hotkeys = new Dictionary<int, List<KeyCode>>();
         set_hotkey("", HOTKEY_MODIFIER);
         set_hotkey("F8", HOTKEY_DEBUG);
+        set_hotkey("F9", HOTKEY_DEBUG2);
     }
 
     private static void set_hotkey(string keys_string, int key_index) {
@@ -59,6 +61,9 @@ class Hotkeys {
             }
             if (is_hotkey_down(HOTKEY_DEBUG)) {
                 CustomCustomersPlugin.__Testing__.hotkey_triggered_test_method();
+            }
+            if (is_hotkey_down(HOTKEY_DEBUG2)) {
+                CustomCustomersPlugin.__Testing__.hotkey_triggered_test_method_2();
             }
         }
     }

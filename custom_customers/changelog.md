@@ -4,7 +4,7 @@
 - 
 
 ## Bug Fixes
-- 
+- Rollover customer info now formats money to two decimal places
 
 ## In Progress
 - Credit machine pre-population does not work with non-USD
