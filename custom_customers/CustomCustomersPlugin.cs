@@ -78,7 +78,7 @@ public class CustomCustomersPlugin : DDPlugin {
 			const int MIN_VOLUME = 100;
 			const int MAX_VOLUME = 100;
 
-
+			const int PER_ITEM_BUY_CHANCE_REDUCTION = 5;
 
 			private static bool Prefix(Customer __instance, ref bool ___m_IsInsideShop, Shelf ___m_CurrentShelf, ShelfCompartment ___m_CurrentItemCompartment, bool ___m_IsSmelly, List<Item> ___m_ItemInBagList, ref int ___m_FailFindItemAttemptCount, ref Coroutine ___m_DecideFinishShopping, ref bool ___m_HasTookItemFromShelf) {
 				try {
@@ -104,36 +104,39 @@ public class CustomCustomersPlugin : DDPlugin {
 						if (lastItem.GetItemType() == EItemType.Deodorant) {
 							max_item_count = ((!___m_IsSmelly) ? UnityEngine.Random.Range(0, 4) : 0);
 						} else {
-							max_item_count = UnityEngine.Random.Range(0, ___m_CurrentItemCompartment.GetItemCount() + 1 + (___m_CurrentItemCompartment.GetItemCount() > 3 ? 0 : Mathf.Max(Mathf.RoundToInt((50f - itemData.GetItemVolume()) / 10f), 0))); //UnityEngine.Random.Range(0, Mathf.Clamp(___m_CurrentItemCompartment.GetItemCount() + 1 + num, 4, 14));
+							max_item_count = ___m_CurrentItemCompartment.GetItemCount();
 						}
 						max_item_count = Mathf.Clamp(max_item_count, 0, ___m_CurrentItemCompartment.GetItemCount());
-						bool flag = false;
+						float itemPrice = CPlayerData.GetItemPrice(lastItem.GetItemType());
+						float itemMarketPrice = CPlayerData.GetItemMarketPrice(lastItem.GetItemType());
+						int customerBuyItemChance = CSingleton<CustomerManager>.Instance.GetCustomerBuyItemChance(itemPrice, itemMarketPrice);
+						int current_item_buy_chance = customerBuyItemChance;
+						int desired_item_count = 0;
+						bool already_blabbed = false;
 						for (int i = 0; i < max_item_count; i++) {
-							lastItem = ___m_CurrentItemCompartment.GetLastItem();
-							if (!lastItem) {
-								continue;
+							if (!already_blabbed) {
+								already_blabbed = (bool) ReflectionUtils.invoke_method(__instance, "BuyItemSpeechPopup", new object[] {customerBuyItemChance, itemPrice, itemData.name});
 							}
-							float itemPrice = CPlayerData.GetItemPrice(lastItem.GetItemType());
-							float itemMarketPrice = CPlayerData.GetItemMarketPrice(lastItem.GetItemType());
-							int customerBuyItemChance = CSingleton<CustomerManager>.Instance.GetCustomerBuyItemChance(itemPrice, itemMarketPrice);
-							if (!flag) {
-								flag = (bool) ReflectionUtils.invoke_method(__instance, "BuyItemSpeechPopup", new object[] {customerBuyItemChance, itemPrice, itemData.name});
-							}
-							if (UnityEngine.Random.Range(0, 100) < customerBuyItemChance) {
-								___m_CurrentItemCompartment.RemoveItem(lastItem);
-								lastItem.m_Mesh.enabled = true;
-								___m_ItemInBagList.Add(lastItem);
-								lastItem.SetCurrentPrice(itemPrice);
-								lastItem.LerpToTransform(__instance.m_ShoppingBagTransform, __instance.m_ShoppingBagTransform);
-								lastItem.SetHideItemAfterFinishLerp();
-								__instance.m_CurrentCostTotal += itemPrice;
-								current_volume += lastItem.GetItemVolume();
-								if (current_volume >= (float) max_volume || __instance.m_CurrentCostTotal >= __instance.m_MaxMoney) {
-									break;
-								}
+							if (UnityEngine.Random.Range(0, 100) < current_item_buy_chance) {
+								desired_item_count++;
+								current_item_buy_chance -= PER_ITEM_BUY_CHANCE_REDUCTION;
 							}
 						}
-						DDPlugin._debug_log($"hash: {__instance.GetHashCode()}, current_volume: {current_volume}, max_volume: {max_volume}, current_cost: {__instance.m_CurrentCostTotal}, max_money: {__instance.m_MaxMoney}");
+						DDPlugin._debug_log($"max_item_count: {max_item_count}, desired_item_count: {desired_item_count}");
+						for (int i = 0; i < desired_item_count; i++) {
+							if (current_volume >= (float) max_volume || __instance.m_CurrentCostTotal >= __instance.m_MaxMoney || (lastItem = ___m_CurrentItemCompartment.GetLastItem()) == null) {
+								break;
+							}
+							___m_CurrentItemCompartment.RemoveItem(lastItem);
+							lastItem.m_Mesh.enabled = true;
+							___m_ItemInBagList.Add(lastItem);
+							lastItem.SetCurrentPrice(itemPrice);
+							lastItem.LerpToTransform(__instance.m_ShoppingBagTransform, __instance.m_ShoppingBagTransform);
+							lastItem.SetHideItemAfterFinishLerp();
+							__instance.m_CurrentCostTotal += itemPrice;
+							current_volume += lastItem.GetItemVolume();
+						}
+						DDPlugin._debug_log($"customer hash: {__instance.GetHashCode()}, current_volume: {current_volume}, max_volume: {max_volume}, current_cost: {__instance.m_CurrentCostTotal}, max_money: {__instance.m_MaxMoney}");
 						if (current_volume > 0f) {
 							__instance.m_ShoppingBagTransform.gameObject.SetActive(value: true);
 							__instance.m_Anim.SetBool("HoldingBag", value: true);
@@ -327,8 +330,8 @@ public class CustomCustomersPlugin : DDPlugin {
 
 			public void show_tooltip() {
 				m_customer_info_text.text = @$"
-Max Cash:   {this.m_customer.m_MaxMoney}
-Item Total: {this.m_customer.m_CurrentCostTotal}";
+Max Cash:   {this.m_customer.m_MaxMoney:#0.00}
+Item Total: {this.m_customer.m_CurrentCostTotal:#0.00}";
 				m_customer_info_text.gameObject.SetActive(true);
 			}
 

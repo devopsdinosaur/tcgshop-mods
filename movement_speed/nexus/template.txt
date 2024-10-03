@@ -26,6 +26,7 @@ For information on how to modify these options, see the [i]Editing the Config Fi
 
 [[config_options]]
 [size=4][b][u]Editing the Config File[/u][/b][/size]
+
 NOTE: If you used the premade BepInEx pack mod or downloaded ConfigurationManager then you can hit F1 to open a dialog to modify options.  Note that some options may not take effect without restarting the game.
 To edit the config file outside of the game:
 [list=1]
