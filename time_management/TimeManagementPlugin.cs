@@ -136,7 +136,6 @@ public class TimeManagementPlugin : DDPlugin {
 			}
 
 			public void start(int hour, int minute) {
-				DDPlugin._debug_log($"start(hour: {hour}, minute: {minute})");
 				this.StopAllCoroutines();
 				this.m_time = hour * SECONDS_PER_HOUR + minute * SECONDS_PER_MINUTE;
 				this.update_time();
@@ -159,7 +158,6 @@ public class TimeManagementPlugin : DDPlugin {
 				
 				// TODO: Blending wrecks lighting and washes out scene second time around; for now just change skybox mat directly.
 				
-				DDPlugin._debug_log($"[{this.m_hour:D2}:{this.m_minute:D2}] skybox_routine started");
 				void blend(int index) {
 					if (this.m_skybox_index != index) {
 						RenderSettings.skybox = this.m_skybox_blender.skyboxMaterials[this.m_skybox_index = index];
@@ -179,7 +177,6 @@ public class TimeManagementPlugin : DDPlugin {
 			}
 
 			private IEnumerator sun_routine() {
-				DDPlugin._debug_log($"[{this.m_hour:D2}:{this.m_minute:D2}] sun_routine started");
 				void set_intensity(List<Light> lights, float intensity) {
 					foreach (Light light in lights) {
 						light.intensity = intensity;
@@ -239,6 +236,7 @@ public class TimeManagementPlugin : DDPlugin {
 						___m_LightTimeData.m_TimeMin = 0;
 					}
 					LightSpinner.Instance.start(___m_LightTimeData.m_TimeHour, ___m_LightTimeData.m_TimeMin);
+					ReflectionUtils.invoke_method(__instance, "EvaluateTimeClock");
 					return false;
 				} catch (Exception e) {
 					DDPlugin._error_log("** HarmonyPatch_LightManager_Init.Prefix ERROR - " + e);
@@ -249,12 +247,13 @@ public class TimeManagementPlugin : DDPlugin {
 
 		[HarmonyPatch(typeof(LightManager), "ResetSunlightIntensity")]
 		class HarmonyPatch_LightManager_ResetSunlightIntensity {
-			private static bool Prefix(ref bool ___m_HasDayEnded) {
+			private static bool Prefix(LightManager __instance, ref bool ___m_HasDayEnded) {
 				try {
 					if (!Settings.m_enabled.Value) {
 						return true;
 					}
 					LightSpinner.Instance.start(m_day_begin_hour, 0);
+					ReflectionUtils.invoke_method(__instance, "EvaluateTimeClock");
 					___m_HasDayEnded = false;
 					CPlayerData.m_IsShopOnceOpen = true;
 					CEventManager.QueueEvent(new CEventPlayer_OnDayStarted());
@@ -273,6 +272,8 @@ public class TimeManagementPlugin : DDPlugin {
                     if (!Settings.m_enabled.Value) {
                         return true;
                     }
+					___m_TimeHour = LightSpinner.Instance.Hour;
+					___m_TimeMin = LightSpinner.Instance.Minute;
                     __instance.m_TimeString = (Settings.m_twenty_four_hour_format.Value ?
                         String.Format("{0:D2}:{1:D2}", ___m_TimeHour, ___m_TimeMin) :
                         String.Format("{0:D2}:{1:D2} {2:S}", (___m_TimeHour > 12 ? ___m_TimeHour - 12 : ___m_TimeHour), ___m_TimeMin, (___m_TimeHour >= 12 ? "PM" : "AM"))
