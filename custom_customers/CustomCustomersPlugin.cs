@@ -70,8 +70,16 @@ public class CustomCustomersPlugin : DDPlugin {
 		private float m_original_speed = 0f;
 		private float m_original_animation_speed = 0f;
 
-		private const int ROUTINE_
-		private Dictionary<int, Coroutine> m_routines = new Dictionary<int, Coroutine>();
+		private const int RID_SCAN_ITEM_OUT_OF_BOUND = 0;
+		private const int RID_SIZE = 1;
+		private Coroutine[] m_routines = new Coroutine[RID_SIZE];
+
+		public static class DecisionParams {
+			public static float check_scan_item_out_of_bound_timeout = 3f;
+			public static int fail_to_find_item_range_min = 1;
+			public static int fail_to_find_item_range_max = 5;
+			public static float max_idle_time = 2f;
+		}
 
 		class HarmonyPatches {
 			[HarmonyPatch(typeof(Customer), "ActivateCustomer")]
@@ -83,9 +91,25 @@ public class CustomCustomersPlugin : DDPlugin {
 
 			[HarmonyPatch(typeof(Customer), "Update")]
 			class HarmonyPatch_Customer_Update {
-				private static bool Prefix(Customer __instance, Quaternion ___m_TargetLerpRotation, float ___m_RotationLerpSpeed, ref Vector3 ___m_LastFramePos, ref bool ___m_IsCheckScanItemOutOfBound) {
-					return ensure_infected(__instance).update(__instance, ___m_TargetLerpRotation, ___m_RotationLerpSpeed, ref ___m_LastFramePos, ref ___m_IsCheckScanItemOutOfBound);
+				private static bool Prefix(Customer __instance, Quaternion ___m_TargetLerpRotation, float ___m_RotationLerpSpeed, 
+					ref Vector3 ___m_LastFramePos, ref bool ___m_IsCheckScanItemOutOfBound, ref float ___m_CheckScanItemOutOfBoundTimer,
+					ref bool ___m_IsBeingSprayed, ref float ___m_BeingSprayedResetTimer, ref float ___m_BeingSprayedResetTimeMax,
+					ref float ___m_Timer, ref int ___m_FailFindItemAttemptCount, List<Item> ___m_ItemInBagList, 
+					List<InteractableCard3d> ___m_CardInBagList
+				) {
+					return ensure_infected(__instance).update(__instance, ___m_TargetLerpRotation, ___m_RotationLerpSpeed, 
+						ref ___m_LastFramePos, ref ___m_IsCheckScanItemOutOfBound, ref ___m_CheckScanItemOutOfBoundTimer,
+						ref ___m_IsBeingSprayed, ref ___m_BeingSprayedResetTimer, ref ___m_BeingSprayedResetTimeMax,
+						ref ___m_Timer, ref ___m_FailFindItemAttemptCount, ___m_ItemInBagList,
+						___m_CardInBagList
+					);
 				}
+			}
+		}
+
+		private void Awake() {
+			for (int index = 0; index < this.m_routines.Length; index++) {
+				this.m_routines[index] = null;
 			}
 		}
 
@@ -140,30 +164,59 @@ public class CustomCustomersPlugin : DDPlugin {
 			return (this.m_is_frozen ? 0 : (is_fixed ? Time.fixedDeltaTime : Time.deltaTime));
 		}
 
-		private bool update(Customer __instance, Quaternion ___m_TargetLerpRotation, float ___m_RotationLerpSpeed, ref Vector3 ___m_LastFramePos, ref bool ___m_IsCheckScanItemOutOfBound) {
+		private bool update(Customer __instance, Quaternion ___m_TargetLerpRotation, float ___m_RotationLerpSpeed, 
+			ref Vector3 ___m_LastFramePos, ref bool ___m_IsCheckScanItemOutOfBound, ref float ___m_CheckScanItemOutOfBoundTimer,
+			ref bool ___m_IsBeingSprayed, ref float ___m_BeingSprayedResetTimer, ref float ___m_BeingSprayedResetTimeMax,
+			ref float ___m_Timer, ref int ___m_FailFindItemAttemptCount, List<Item> ___m_ItemInBagList, 
+			List<InteractableCard3d> ___m_CardInBagList
+		) {
 			try {
 				if (!__instance.m_IsActive) {
 					return false;
 				}
 				float delta_time = this.get_delta_time();
 				float fixed_delta_time = this.get_delta_time(true);
-				__instance.transform.rotation = Quaternion.Lerp(base.transform.rotation, ___m_TargetLerpRotation, fixed_delta_time * ___m_RotationLerpSpeed);
-				__instance.m_CurrentMoveSpeed = (___m_LastFramePos - base.transform.position).magnitude * 50f;
-				___m_LastFramePos = base.transform.position;
+				__instance.transform.rotation = Quaternion.Lerp(__instance.transform.rotation, ___m_TargetLerpRotation, fixed_delta_time * ___m_RotationLerpSpeed);
+				__instance.m_CurrentMoveSpeed = (___m_LastFramePos - __instance.transform.position).magnitude * 50f;
+				___m_LastFramePos = __instance.transform.position;
 				__instance.m_Anim.SetFloat("MoveSpeed", __instance.m_CurrentMoveSpeed);
 				if (___m_IsCheckScanItemOutOfBound) {
-					___m_IsCheckScanItemOutOfBound = false;
-					this.StartCoroutine(this.update_routine_check_scan_item_out_of_bound());
+					if ((___m_CheckScanItemOutOfBoundTimer += delta_time) > DecisionParams.check_scan_item_out_of_bound_timeout) {
+						___m_CheckScanItemOutOfBoundTimer = 0f;
+						ReflectionUtils.invoke_method(__instance, "CheckItemOutOfCashierBound");
+					}
 				}
+				if (___m_IsBeingSprayed) {
+					if ((___m_BeingSprayedResetTimer += delta_time) > ___m_BeingSprayedResetTimeMax) {
+						___m_BeingSprayedResetTimer = 0f;
+						___m_IsBeingSprayed = false;
+						__instance.m_Anim.SetBool("IsBeingSprayed", value: false);
+					}
+				}
+				if (__instance.m_CurrentState == ECustomerState.Idle) {
+					if ((___m_Timer += delta_time) <= DecisionParams.max_idle_time) {
+						return false;
+					}
+					___m_Timer = 0f;
+					if (CPlayerData.m_IsShopOpen) {
+						ReflectionUtils.invoke_method(__instance, "DetermineShopAction");
+					} else if (___m_FailFindItemAttemptCount > UnityEngine.Random.Range(DecisionParams.fail_to_find_item_range_min, DecisionParams.fail_to_find_item_range_max)) {
+						if (___m_ItemInBagList.Count > 0 || ___m_CardInBagList.Count > 0) {
+							ReflectionUtils.invoke_method(__instance, "ThinkWantToPay");
+						} else {
+							ReflectionUtils.invoke_method(__instance, "ExitShop");
+						}
+					} else {
+						ReflectionUtils.invoke_method(__instance, "GoShopNotOpenState");
+					}
+					return false;
+				}
+
 				return false;
 			} catch (Exception e) {
 				DDPlugin._error_log("** CustomerBrainWorm.update ERROR - " + e);
 			}
 			return true;
-		}
-
-		private IEnumerator update_routine_check_scan_item_out_of_bound() {
-			
 		}
 	}
 
