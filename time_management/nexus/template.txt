@@ -5,12 +5,14 @@ Current Version: [[version]] ([url=https://github.com/[[author]]/[[repo]]/blob/m
 
 [[short_description]]
 
+NOTE: I had to rework the lighting system to accomodate the ability to extend day hours.  Currently the sky transitions are not blended (i.e. change from evening to night in a single frame), and there might be some lighting weirdness I missed.  Let me know if you see issues and I'll fix them in the next version.  Thanks!
+
 See the config options below for a complete list of features and how to use them.  If you have ideas or issues see the [i]Source Code and Bug Reporting[/i] section at the bottom of the page.  Thanks!
 
 [size=4][b][u]Installation[/u][/b][/size]
 
 [list=1]
-[*][url=https://www.nexusmods.com/davethediver/mods/3/]Install BepInEx[/url]﻿
+[*][url=https://www.nexusmods.com/tcgcardshopsimulator/mods/8]Install BepInEx[/url]﻿
 [*]Download and extract this mod.
 [*]Copy the extracted files to [i]<[[game]]-home>/BepInEx/plugins[/i] folder.
 [*]Start the game and exit.
