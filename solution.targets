@@ -71,9 +71,24 @@
       <HintPath>$(ManagedDataPath)\Assembly-CSharp-firstpass.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="AstarPathfindingProject">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\AstarPathfindingProject.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="DOTween">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(ManagedDataPath)\DOTween.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Drawing">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\Drawing.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="PackageTools">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\PackageTools.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

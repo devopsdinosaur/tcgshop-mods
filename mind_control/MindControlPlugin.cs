@@ -10,11 +10,11 @@ using Pathfinding;
 
 public static class PluginInfo {
 
-	public const string TITLE = "Custom Customers";
-	public const string NAME = "custom_customers";
-	public const string SHORT_DESCRIPTION = "Configurable tweaks (walk speed, exact change, spending money, etc) to customers to improve quality of life for your shop!";
+	public const string TITLE = "Mind Control";
+	public const string NAME = "mind_control";
+	public const string SHORT_DESCRIPTION = "Completely change the AI parameters controlling customer decisions.  Buy more, play more, stay longer, even freeze completely!";
 
-	public const string VERSION = "0.0.5";
+	public const string VERSION = "0.0.1";
 
 	public const string AUTHOR = "devopsdinosaur";
 	public const string GAME_TITLE = "TCG Shop Simulator";
@@ -32,7 +32,7 @@ public static class PluginInfo {
 }
 
 [BepInPlugin(PluginInfo.GUID, PluginInfo.TITLE, PluginInfo.VERSION)]
-public class CustomCustomersPlugin : DDPlugin {
+public class MindControlPlugin : DDPlugin {
 	private Harmony m_harmony = new Harmony(PluginInfo.GUID);
 
 	private void Awake() {
