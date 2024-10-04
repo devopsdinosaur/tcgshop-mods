@@ -13,7 +13,7 @@ public static class PluginInfo {
 	public const string NAME = "quick_scan";
 	public const string SHORT_DESCRIPTION = "Scan all items on the counter with a single click!  Works on employees too!";
 
-	public const string VERSION = "0.0.1";
+	public const string VERSION = "0.0.2";
 
 	public const string AUTHOR = "devopsdinosaur";
 	public const string GAME_TITLE = "TCG Shop Simulator";
@@ -103,6 +103,9 @@ public class QuickScanPlugin : DDPlugin {
 		[HarmonyPatch(typeof(Customer), "OnItemScanned")]
 		class HarmonyPatch_Customer_OnItemScanned {
 			private static void Postfix(Customer __instance, Item item, ref int ___m_ItemScannedCount, InteractableCashierCounter ___m_CurrentQueueCashierCounter, ref float ___m_TotalScannedItemCost) {
+				if (!Settings.m_enabled.Value) {
+					return;
+				}
 				scan_all_items(__instance, item, ref ___m_ItemScannedCount, ___m_CurrentQueueCashierCounter, ref ___m_TotalScannedItemCost);
 				scan_all_cards(__instance, null, ref ___m_ItemScannedCount, ___m_CurrentQueueCashierCounter, ref ___m_TotalScannedItemCost);
 			}
@@ -111,6 +114,9 @@ public class QuickScanPlugin : DDPlugin {
 		[HarmonyPatch(typeof(Customer), "OnCardScanned")]
 		class HarmonyPatch_Customer_OnCardScanned {
 			private static void Postfix(Customer __instance, InteractableCard3d card, ref int ___m_ItemScannedCount, InteractableCashierCounter ___m_CurrentQueueCashierCounter, ref float ___m_TotalScannedItemCost) {
+				if (!Settings.m_enabled.Value) {
+					return;
+				}
 				scan_all_items(__instance, null, ref ___m_ItemScannedCount, ___m_CurrentQueueCashierCounter, ref ___m_TotalScannedItemCost);
 				scan_all_cards(__instance, card, ref ___m_ItemScannedCount, ___m_CurrentQueueCashierCounter, ref ___m_TotalScannedItemCost);
 			}

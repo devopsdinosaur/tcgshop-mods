@@ -14,7 +14,7 @@ public static class PluginInfo {
 	public const string NAME = "time_management";
 	public const string SHORT_DESCRIPTION = "Change shop open/close hours.  Slow down, speed up, stop, and even reverse time using configurable hotkeys.";
 
-	public const string VERSION = "0.0.1";
+	public const string VERSION = "0.0.2";
 
 	public const string AUTHOR = "devopsdinosaur";
 	public const string GAME_TITLE = "TCG Shop Simulator";
@@ -139,6 +139,7 @@ public class TimeManagementPlugin : DDPlugin {
 				this.StopAllCoroutines();
 				this.m_time = hour * SECONDS_PER_HOUR + minute * SECONDS_PER_MINUTE;
 				this.update_time();
+				this.StartCoroutine(this.music_routine());
 				this.StartCoroutine(this.skybox_routine());
 				this.StartCoroutine(this.sun_routine());
 			}
@@ -152,6 +153,24 @@ public class TimeManagementPlugin : DDPlugin {
 				this.m_hour = Mathf.FloorToInt(this.m_time / SECONDS_PER_HOUR);
 				this.m_minute = Mathf.FloorToInt(this.m_time % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE;
 				this.m_second = Mathf.FloorToInt(this.m_time % SECONDS_PER_HOUR) % SECONDS_PER_MINUTE;
+			}
+
+			private IEnumerator music_routine() {
+				const int SONG_INDEX_DAY = 0;
+				const int SONG_INDEX_NIGHT = 1;
+				string[] songs = {"BGM_ShopDay", "BGM_ShopNight"};
+				int song_index = -1;
+				void set_song(int index) {
+					if (song_index == index) {
+						return;
+					}
+					song_index = index;
+					SoundManager.BlendToMusic(songs[index], 1f, true);
+				}
+				while (true) {
+					set_song((this.m_hour >= STOP_HOUR_NIGHT && this.m_hour < STOP_HOUR_EVENING ? SONG_INDEX_DAY : SONG_INDEX_NIGHT));
+					yield return new WaitForSeconds(1.0f);
+				}
 			}
 
 			private IEnumerator skybox_routine() {

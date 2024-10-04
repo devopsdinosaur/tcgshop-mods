@@ -70,10 +70,6 @@ public class CustomCustomersPlugin : DDPlugin {
 		private float m_original_speed = 0f;
 		private float m_original_animation_speed = 0f;
 
-		private const int RID_SCAN_ITEM_OUT_OF_BOUND = 0;
-		private const int RID_SIZE = 1;
-		private Coroutine[] m_routines = new Coroutine[RID_SIZE];
-
 		public static class DecisionParams {
 			// Each of these max_time_xxx's represent the amount of time a customer
 			// will 'think' in the given state before it's considered a failure.
@@ -85,7 +81,12 @@ public class CustomCustomersPlugin : DDPlugin {
 			public static int failure_count_range_max = 5;
 			public static float max_time_check_scan_item_out_of_bound = 3f;
 			public static float max_time_idle = 2f;
+			public static float max_time_look_for_card_shelf = 8f;
 			public static float max_time_look_for_shelf = 8f;
+			public static float max_time_look_for_table = 8f;
+			public static float max_time_take_item_from_card_shelf = 1f;
+			public static float max_time_take_item_from_shelf = 1f;
+			public static float max_time_walk_to_shelf = 1f;
 		}
 
 		class HarmonyPatches {
@@ -102,22 +103,23 @@ public class CustomCustomersPlugin : DDPlugin {
 					ref Vector3 ___m_LastFramePos, ref bool ___m_IsCheckScanItemOutOfBound, ref float ___m_CheckScanItemOutOfBoundTimer,
 					ref bool ___m_IsBeingSprayed, ref float ___m_BeingSprayedResetTimer, ref float ___m_BeingSprayedResetTimeMax,
 					ref float ___m_Timer, ref int ___m_FailFindItemAttemptCount, List<Item> ___m_ItemInBagList, 
-					List<InteractableCard3d> ___m_CardInBagList, ref bool ___m_UnableToFindQueue
+					List<InteractableCard3d> ___m_CardInBagList, ref bool ___m_UnableToFindQueue, bool ___m_IsInsideShop,
+					ref bool ___m_HasTookItemFromShelf, ref bool ___m_HasTookCardFromShelf, InteractableCashierCounter m_CurrentQueueCashierCounter,
+					bool m_IsAtPayingPosition
 				) {
 					return ensure_infected(__instance).update(__instance, ___m_TargetLerpRotation, ___m_RotationLerpSpeed, 
 						ref ___m_LastFramePos, ref ___m_IsCheckScanItemOutOfBound, ref ___m_CheckScanItemOutOfBoundTimer,
 						ref ___m_IsBeingSprayed, ref ___m_BeingSprayedResetTimer, ref ___m_BeingSprayedResetTimeMax,
 						ref ___m_Timer, ref ___m_FailFindItemAttemptCount, ___m_ItemInBagList,
-						___m_CardInBagList, ref ___m_UnableToFindQueue
+						___m_CardInBagList, ref ___m_UnableToFindQueue, ___m_IsInsideShop,
+						ref ___m_HasTookItemFromShelf, ref ___m_HasTookCardFromShelf, m_CurrentQueueCashierCounter,
+						m_IsAtPayingPosition
 					);
 				}
 			}
 		}
 
 		private void Awake() {
-			for (int index = 0; index < this.m_routines.Length; index++) {
-				this.m_routines[index] = null;
-			}
 		}
 
 		public static List<CustomerBrainWorm> ensure_infected() {
@@ -175,11 +177,17 @@ public class CustomCustomersPlugin : DDPlugin {
 			return failure_count > UnityEngine.Random.Range(DecisionParams.failure_count_range_min, DecisionParams.failure_count_range_max);
 		}
 
+		private void set_state(ECustomerState state) {
+			this.m_customer.m_CurrentState = state;
+		}
+
 		private bool update(Customer __instance, Quaternion ___m_TargetLerpRotation, float ___m_RotationLerpSpeed, 
 			ref Vector3 ___m_LastFramePos, ref bool ___m_IsCheckScanItemOutOfBound, ref float ___m_CheckScanItemOutOfBoundTimer,
 			ref bool ___m_IsBeingSprayed, ref float ___m_BeingSprayedResetTimer, ref float ___m_BeingSprayedResetTimeMax,
 			ref float ___m_Timer, ref int ___m_FailFindItemAttemptCount, List<Item> ___m_ItemInBagList, 
-			List<InteractableCard3d> ___m_CardInBagList, ref bool ___m_UnableToFindQueue
+			List<InteractableCard3d> ___m_CardInBagList, ref bool ___m_UnableToFindQueue, bool ___m_IsInsideShop,
+			ref bool ___m_HasTookItemFromShelf, ref bool ___m_HasTookCardFromShelf, InteractableCashierCounter m_CurrentQueueCashierCounter,
+			bool m_IsAtPayingPosition
 		) {
 			try {
 				if (!__instance.m_IsActive) {
@@ -220,17 +228,62 @@ public class CustomCustomersPlugin : DDPlugin {
 					} else {
 						ReflectionUtils.invoke_method(__instance, "GoShopNotOpenState");
 					}
-					if (__instance.m_CurrentState == ECustomerState.WantToBuyItem) {
-						if (___m_UnableToFindQueue) {
-							if ((___m_Timer += delta_time) > DecisionParams.max_time_look_for_shelf) {
-								___m_Timer = 0f;
-								ReflectionUtils.invoke_method(__instance, "AttemptFindShelf");
+					return false;
+				}
+				if (__instance.m_CurrentState == ECustomerState.WantToBuyItem) {
+					if (___m_UnableToFindQueue) {
+						if ((___m_Timer += delta_time) > DecisionParams.max_time_look_for_shelf) {
+							___m_Timer = 0f;
+							ReflectionUtils.invoke_method(__instance, "AttemptFindShelf");
+						}
+					}
+				} else if (__instance.m_CurrentState == ECustomerState.WantToBuyCard) {
+					if (___m_UnableToFindQueue) {
+						if ((___m_Timer += delta_time) > DecisionParams.max_time_look_for_card_shelf) {
+							___m_Timer = 0f;
+							ReflectionUtils.invoke_method(__instance, "AttemptFindCardShelf");
+						}
+					}
+				} else if (__instance.m_CurrentState == ECustomerState.WantToPlayGame) {
+					if (___m_UnableToFindQueue) {
+						if ((___m_Timer += delta_time) > DecisionParams.max_time_look_for_table) {
+							___m_Timer = 0f;
+							ReflectionUtils.invoke_method(__instance, "AttemptFindPlayTable");
+						}
+					}
+				} else if (__instance.m_CurrentState == ECustomerState.WalkToShelf) {
+					if (!___m_IsInsideShop) {
+						if ((___m_Timer += delta_time) > DecisionParams.max_time_walk_to_shelf) {
+							___m_Timer = 0f;
+							if (!CPlayerData.m_IsShopOnceOpen) {
+								ReflectionUtils.invoke_method(__instance, "GetShopNotOpenState");
+							} else if (LightManager.GetHasDayEnded()) {
+								___m_FailFindItemAttemptCount = int.MaxValue;
+								ReflectionUtils.invoke_method(__instance, "GetShopNotOpenState");
 							}
 						}
 					}
-					return false;
+				} else if (__instance.m_CurrentState == ECustomerState.TakingItemFromShelf) {
+					if (!___m_HasTookItemFromShelf) {
+						if ((___m_Timer += delta_time) > DecisionParams.max_time_take_item_from_shelf) {
+							___m_Timer = 0f;
+							___m_HasTookItemFromShelf = true;
+							ReflectionUtils.invoke_method(__instance, "TakeItemFromShelf");
+						}
+					} else {
+						this.set_state(ECustomerState.Idle);
+					}
+				} else if (__instance.m_CurrentState == ECustomerState.TakingItemFromCardShelf) {
+					if (!___m_HasTookCardFromShelf) {
+						if ((___m_Timer += delta_time) > DecisionParams.max_time_take_item_from_card_shelf) {
+							___m_Timer = 0f;
+							___m_HasTookCardFromShelf = true;
+							ReflectionUtils.invoke_method(__instance, "TakeCardFromShelf");
+						}
+					} else {
+						this.set_state(ECustomerState.Idle);
+					}
 				}
-
 				return false;
 			} catch (Exception e) {
 				DDPlugin._error_log("** CustomerBrainWorm.update ERROR - " + e);
