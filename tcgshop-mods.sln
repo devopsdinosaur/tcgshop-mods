@@ -28,6 +28,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "quick_scan", "quick_scan\qu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mind_control", "mind_control\mind_control.csproj", "{A9310CF0-DAD2-432B-9472-7B87D4DCD7AA}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "big_spender", "big_spender\big_spender.csproj", "{D378D12D-2F40-4F3F-8524-B0C02A5ACE1F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,6 +60,10 @@ Global
 		{A9310CF0-DAD2-432B-9472-7B87D4DCD7AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9310CF0-DAD2-432B-9472-7B87D4DCD7AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9310CF0-DAD2-432B-9472-7B87D4DCD7AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D378D12D-2F40-4F3F-8524-B0C02A5ACE1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D378D12D-2F40-4F3F-8524-B0C02A5ACE1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D378D12D-2F40-4F3F-8524-B0C02A5ACE1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D378D12D-2F40-4F3F-8524-B0C02A5ACE1F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

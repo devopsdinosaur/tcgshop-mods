@@ -428,7 +428,7 @@ public class MindControlPlugin : DDPlugin {
 	}
 
 	public class __Testing__ {
-		[HarmonyPatch(typeof(Customer), "TakeItemFromShelf")]
+		//[HarmonyPatch(typeof(Customer), "TakeItemFromShelf")]
 		class HarmonyPatch_Customer_TakeItemFromShelf {
 
 			const int MIN_VOLUME = 100;
@@ -518,7 +518,7 @@ public class MindControlPlugin : DDPlugin {
 			}
 		}
 
-		[HarmonyPatch(typeof(Customer), "ActivateCustomer")]
+		//[HarmonyPatch(typeof(Customer), "ActivateCustomer")]
 		class HarmonyPatch_Customer_ActivateCustomer {
 
 			class CustomCustomers_FuzzifyAnimator : MonoBehaviour {
