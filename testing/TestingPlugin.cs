@@ -48,6 +48,43 @@ public class TestingPlugin : DDPlugin {
 		}
 	}
 
+	class __Global__ {
+		[HarmonyPatch(typeof(CGameManager), "Awake")]
+		class HarmonyPatch_CGameManager_Awake {
+			private static void Postfix(CGameManager __instance) {
+				Hotkeys.load();
+			}
+		}
+
+		[HarmonyPatch(typeof(CGameManager), "Update")]
+		class HarmonyPatch_CGameManager_Update {
+			private static void Postfix(CGameManager __instance) {
+				Hotkeys.Updaters.keypress_update();
+			}
+		}
+	}
+
+	public class CheatRestock {
+		public static void cheat_restock_everything() {
+			DDPlugin._debug_log("-- hotkey_triggered_test_method --");
+			foreach (Shelf shelf in ShelfManager.GetShelfList()) {
+				DDPlugin._debug_log($"shelf: {shelf.name}");
+				List<ShelfCompartment> compartments = (List<ShelfCompartment>) ReflectionUtils.get_field_value(shelf, "m_ItemCompartmentList");
+				if (compartments == null) {
+					continue;
+				}
+				foreach (ShelfCompartment compartment in compartments) {
+					EItemType item_type = compartment.GetItemType();
+					DDPlugin._debug_log($"[{shelf.name}] index: {compartment.GetIndex()}, item_type: {item_type}");
+					if (item_type == EItemType.None || compartment.GetItemCount() == compartment.GetMaxItemCount()) {
+						continue;
+					}
+					compartment.SpawnItem(compartment.GetMaxItemCount() - compartment.GetItemCount(), false);
+				}
+			}
+		}
+	}
+
 	class Smelliness {
 		[HarmonyPatch(typeof(Customer), "IsSmelly")]
 		class HarmonyPatch_Customer_IsSmelly {

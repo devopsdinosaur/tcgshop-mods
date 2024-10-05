@@ -64,12 +64,13 @@ public class MindControlPlugin : DDPlugin {
 		}
 	}
 	
-	class CustomerBrainWorm : MonoBehaviour {
+	public class CustomerBrainWorm : MonoBehaviour {
 		private Customer m_customer = null;
 		private static bool m_are_all_frozen = false;
 		private bool m_is_frozen = false;
 		private float m_original_speed = 0f;
 		private float m_original_animation_speed = 0f;
+		private float m_base_speed = 1f;
 
 		public static class DecisionParams {
 			// Each of these max_time_xxx's represent the amount of time a customer
@@ -95,7 +96,12 @@ public class MindControlPlugin : DDPlugin {
 			// Random chances (0-100)
 			public static int chance_idle_at_play_table_if_no_seat = 40;
 
+			// Chance multipliers
+			public static float chance_multiplier_buy_item = 1;
+
 			// Random ranges 
+			public static float range_min_animation_speed_multiplier = 0.9f;
+			public static float range_max_animation_speed_multiplier = 2.5f;
 			public static int range_min_play_table_emote_delay = 5;
 			public static int range_max_play_table_emote_delay = 30;
 			public static int range_min_wait_for_seat_at_table_all_attempts = 5;
@@ -106,16 +112,94 @@ public class MindControlPlugin : DDPlugin {
 			[HarmonyPatch(typeof(Customer), "ActivateCustomer")]
 			class HarmonyPatch_Customer_ActivateCustomer {
 				private static void Postfix(Customer __instance) {
-					ensure_infected(__instance);
+					if (Settings.m_enabled.Value) {
+						ensure_infected(__instance).activate_customer(__instance);
+					}
+				}
+			}
+
+			[HarmonyPatch(typeof(CustomerManager), "GetCustomerBuyItemChance")]
+			class HarmonyPatch_CustomerManager_GetCustomerBuyItemChance {
+				private static void Postfix(float currentPrice, float marketPrice, ref int __result) {
+					if (Settings.m_enabled.Value) {
+						get_customer_buy_item_chance(currentPrice, marketPrice, ref __result);
+					}
 				}
 			}
 
 			[HarmonyPatch(typeof(Customer), "Update")]
 			class HarmonyPatch_Customer_Update {
 				private static bool Prefix(Customer __instance, ref Quaternion ___m_TargetLerpRotation, float ___m_RotationLerpSpeed, ref Vector3 ___m_LastFramePos, ref bool ___m_IsCheckScanItemOutOfBound, ref float ___m_CheckScanItemOutOfBoundTimer, ref bool ___m_IsBeingSprayed, ref float ___m_BeingSprayedResetTimer, ref float ___m_BeingSprayedResetTimeMax, ref float ___m_Timer, ref int ___m_FailFindItemAttemptCount, List<Item> ___m_ItemInBagList, List<InteractableCard3d> ___m_CardInBagList, ref bool ___m_UnableToFindQueue, bool ___m_IsInsideShop, ref bool ___m_HasTookItemFromShelf, ref bool ___m_HasTookCardFromShelf, InteractableCashierCounter ___m_CurrentQueueCashierCounter, bool ___m_IsAtPayingPosition, InteractablePlayTable ___m_CurrentPlayTable, int ___m_CurrentPlayTableSeatIndex, Vector3 ___m_LerpStartPos, Vector3 ___m_TargetLerpPos, ref float ___m_SecondaryTimer, float ___m_SecondaryTimerMax, ref float ___m_TimerMax, ref bool ___m_ReachedEndOfPath, ref float ___m_LastRepath, Transform ___m_TargetTransform, ref bool ___m_IsWaitingForPathCallback, Path ___m_Path, ref int ___m_CurrentWaypoint, ref bool ___m_IsSmelly, float ___m_ModifiedSpeed, float ___m_ExtraSpeedMultiplier) {
-					return ensure_infected(__instance).update(__instance, ref ___m_TargetLerpRotation, ___m_RotationLerpSpeed, ref ___m_LastFramePos, ref ___m_IsCheckScanItemOutOfBound, ref ___m_CheckScanItemOutOfBoundTimer, ref ___m_IsBeingSprayed, ref ___m_BeingSprayedResetTimer, ref ___m_BeingSprayedResetTimeMax, ref ___m_Timer, ref ___m_FailFindItemAttemptCount, ___m_ItemInBagList, ___m_CardInBagList, ref ___m_UnableToFindQueue, ___m_IsInsideShop, ref ___m_HasTookItemFromShelf, ref ___m_HasTookCardFromShelf, ___m_CurrentQueueCashierCounter, ___m_IsAtPayingPosition, ___m_CurrentPlayTable, ___m_CurrentPlayTableSeatIndex, ___m_LerpStartPos, ___m_TargetLerpPos, ref ___m_SecondaryTimer, ___m_SecondaryTimerMax, ref ___m_TimerMax, ref ___m_ReachedEndOfPath, ref ___m_LastRepath, ___m_TargetTransform, ref ___m_IsWaitingForPathCallback, ___m_Path, ref ___m_CurrentWaypoint, ref ___m_IsSmelly, ___m_ModifiedSpeed, ___m_ExtraSpeedMultiplier);
+					return (Settings.m_enabled.Value ? ensure_infected(__instance).update(__instance, ref ___m_TargetLerpRotation, ___m_RotationLerpSpeed, ref ___m_LastFramePos, ref ___m_IsCheckScanItemOutOfBound, ref ___m_CheckScanItemOutOfBoundTimer, ref ___m_IsBeingSprayed, ref ___m_BeingSprayedResetTimer, ref ___m_BeingSprayedResetTimeMax, ref ___m_Timer, ref ___m_FailFindItemAttemptCount, ___m_ItemInBagList, ___m_CardInBagList, ref ___m_UnableToFindQueue, ___m_IsInsideShop, ref ___m_HasTookItemFromShelf, ref ___m_HasTookCardFromShelf, ___m_CurrentQueueCashierCounter, ___m_IsAtPayingPosition, ___m_CurrentPlayTable, ___m_CurrentPlayTableSeatIndex, ___m_LerpStartPos, ___m_TargetLerpPos, ref ___m_SecondaryTimer, ___m_SecondaryTimerMax, ref ___m_TimerMax, ref ___m_ReachedEndOfPath, ref ___m_LastRepath, ___m_TargetTransform, ref ___m_IsWaitingForPathCallback, ___m_Path, ref ___m_CurrentWaypoint, ref ___m_IsSmelly, ___m_ModifiedSpeed, ___m_ExtraSpeedMultiplier) : true);
 				}
 			}
+		}
+
+		private void activate_customer(Customer __instance) {
+			__instance.m_Anim.speed = (float) __instance.m_Anim.speed * UnityEngine.Random.Range(DecisionParams.range_min_animation_speed_multiplier, DecisionParams.range_max_animation_speed_multiplier);
+
+		}
+
+		private void Awake() {
+		}
+
+		private bool did_state_fail(int failure_count) {
+			return failure_count > UnityEngine.Random.Range(DecisionParams.failure_count_range_min, DecisionParams.failure_count_range_max);
+		}
+
+		public static List<CustomerBrainWorm> ensure_infected() {
+			List<CustomerBrainWorm> result = new List<CustomerBrainWorm>();
+			foreach (Customer customer in Resources.FindObjectsOfTypeAll<Customer>()) {
+				result.Add(ensure_infected(customer));
+			}
+			return result;
+		}
+
+		public static CustomerBrainWorm ensure_infected(Customer customer) {
+			CustomerBrainWorm worm = customer.gameObject.GetComponent<CustomerBrainWorm>();
+			if (worm == null) {
+				worm = customer.gameObject.AddComponent<CustomerBrainWorm>();
+				worm.m_customer = customer;
+			}
+			return worm;
+		}
+
+		public static void toggle_freeze() {
+			m_are_all_frozen = !m_are_all_frozen;
+			foreach (CustomerBrainWorm worm in ensure_infected()) {
+				worm.freeze(m_are_all_frozen);
+			}
+		}
+
+		private void freeze(bool freeze) {
+			if (freeze == this.m_is_frozen) {
+				return;
+			}
+			if (this.m_is_frozen = freeze) {
+				this.m_original_speed = (float) ReflectionUtils.get_field_value(this.m_customer, "m_ExtraSpeedMultiplier");
+				this.m_original_animation_speed = this.m_customer.m_Anim.speed;
+				this.m_customer.SetExtraSpeedMultiplier(0);
+				this.m_customer.m_Anim.speed = 0;
+			} else {
+				this.m_customer.SetExtraSpeedMultiplier(this.m_original_speed);
+				this.m_customer.m_Anim.speed = this.m_original_animation_speed;
+			}
+		}
+
+		private static void get_customer_buy_item_chance(float currentPrice, float marketPrice, ref int __result) {
+			__result = Mathf.FloorToInt((float) __result * DecisionParams.chance_multiplier_buy_item);
+		}
+
+		private float get_time() {
+			return (this.m_is_frozen ? 0 : Time.time);
+		}
+
+		private float get_delta_time(bool is_fixed = false) {
+			return (this.m_is_frozen ? 0 : (is_fixed ? Time.fixedDeltaTime : Time.deltaTime));
+		}
+
+		private void set_state(ECustomerState state) {
+			this.m_customer.m_CurrentState = state;
 		}
 
 		private bool update(Customer __instance, ref Quaternion ___m_TargetLerpRotation, float ___m_RotationLerpSpeed, ref Vector3 ___m_LastFramePos, ref bool ___m_IsCheckScanItemOutOfBound, ref float ___m_CheckScanItemOutOfBoundTimer, ref bool ___m_IsBeingSprayed, ref float ___m_BeingSprayedResetTimer, ref float ___m_BeingSprayedResetTimeMax, ref float ___m_Timer, ref int ___m_FailFindItemAttemptCount, List<Item> ___m_ItemInBagList, List<InteractableCard3d> ___m_CardInBagList, ref bool ___m_UnableToFindQueue, bool ___m_IsInsideShop, ref bool ___m_HasTookItemFromShelf, ref bool ___m_HasTookCardFromShelf, InteractableCashierCounter ___m_CurrentQueueCashierCounter, bool ___m_IsAtPayingPosition, InteractablePlayTable ___m_CurrentPlayTable, int ___m_CurrentPlayTableSeatIndex, Vector3 ___m_LerpStartPos, Vector3 ___m_TargetLerpPos, ref float ___m_SecondaryTimer, float ___m_SecondaryTimerMax, ref float ___m_TimerMax, ref bool ___m_ReachedEndOfPath, ref float ___m_LastRepath, Transform ___m_TargetTransform, ref bool ___m_IsWaitingForPathCallback, Path ___m_Path, ref int ___m_CurrentWaypoint, ref bool ___m_IsSmelly, float ___m_ModifiedSpeed, float ___m_ExtraSpeedMultiplier) {
@@ -245,7 +329,8 @@ public class MindControlPlugin : DDPlugin {
 						}
 						return false;
 					}
-				} if (__instance.m_CurrentState == ECustomerState.QueueingPlayTable) {
+				}
+				if (__instance.m_CurrentState == ECustomerState.QueueingPlayTable) {
 					bool flag = false;
 					if ((___m_Timer += delta_time) > DecisionParams.max_time_wait_for_seat_at_table_single_attempt) {
 						___m_Timer = 0f;
@@ -325,7 +410,7 @@ public class MindControlPlugin : DDPlugin {
 					ReflectionUtils.invoke_method(__instance, "WaypointEndUpdate");
 					break;
 				}
-				__instance.transform.position = Vector3.MoveTowards(base.transform.position, ___m_Path.vectorPath[___m_CurrentWaypoint], ___m_ModifiedSpeed * ___m_ExtraSpeedMultiplier * Time.deltaTime);
+				__instance.transform.position = Vector3.MoveTowards(base.transform.position, ___m_Path.vectorPath[___m_CurrentWaypoint], ___m_ModifiedSpeed * ___m_ExtraSpeedMultiplier * delta_time);
 				if (!___m_ReachedEndOfPath) {
 					Vector3 vector = ___m_Path.vectorPath[___m_CurrentWaypoint] - __instance.transform.position;
 					vector.y = 0f;
@@ -339,83 +424,10 @@ public class MindControlPlugin : DDPlugin {
 			}
 			return true;
 		}
-
-		private void Awake() {
-		}
-
-		public static List<CustomerBrainWorm> ensure_infected() {
-			List<CustomerBrainWorm> result = new List<CustomerBrainWorm>();
-			foreach (Customer customer in Resources.FindObjectsOfTypeAll<Customer>()) {
-				result.Add(ensure_infected(customer));
-			}
-			return result;
-		}
-
-		public static CustomerBrainWorm ensure_infected(Customer customer) {
-			CustomerBrainWorm worm = customer.gameObject.GetComponent<CustomerBrainWorm>();
-			if (worm == null) {
-				worm = customer.gameObject.AddComponent<CustomerBrainWorm>();
-				worm.m_customer = customer;
-			}
-			return worm;
-		}
-
-		public static void toggle_freeze() {
-			m_are_all_frozen = !m_are_all_frozen;
-			foreach (CustomerBrainWorm worm in ensure_infected()) {
-				worm.freeze(m_are_all_frozen);
-			}
-		}
-
-		private void freeze(bool freeze) {
-			if (freeze == this.m_is_frozen) {
-				return;
-			}
-			if (this.m_is_frozen = freeze) {
-				this.m_original_speed = (float) ReflectionUtils.get_field_value(this.m_customer, "m_ExtraSpeedMultiplier");
-				this.m_original_animation_speed = this.m_customer.m_Anim.speed;
-				this.m_customer.SetExtraSpeedMultiplier(0);
-				this.m_customer.m_Anim.speed = 0;
-			} else {
-				this.m_customer.SetExtraSpeedMultiplier(this.m_original_speed);
-				this.m_customer.m_Anim.speed = this.m_original_animation_speed;
-			}
-		}
-
-		public static bool set_speed_multiplier(Customer customer, ref float ___m_ExtraSpeedMultiplier, float extraSpeedMultiplier = 0f) {
-			if (!Settings.m_enabled.Value) {
-				return false;
-			}
-			___m_ExtraSpeedMultiplier = (ensure_infected(customer).m_is_frozen ? 0 : (Settings.m_walk_speed_multiplier.Value != 0 ? Settings.m_walk_speed_multiplier.Value : extraSpeedMultiplier));
-			return Settings.m_walk_speed_multiplier.Value != 0;
-		}
-
-		private float get_time() {
-			return (this.m_is_frozen ? 0 : Time.time);
-		}
-
-		private float get_delta_time(bool is_fixed = false) {
-			return (this.m_is_frozen ? 0 : (is_fixed ? Time.fixedDeltaTime : Time.deltaTime));
-		}
-
-		private bool did_state_fail(int failure_count) {
-			return failure_count > UnityEngine.Random.Range(DecisionParams.failure_count_range_min, DecisionParams.failure_count_range_max);
-		}
-
-		private void set_state(ECustomerState state) {
-			this.m_customer.m_CurrentState = state;
-		}
+		
 	}
 
 	public class __Testing__ {
-		[HarmonyPatch(typeof(CustomerManager), "GetCustomerBuyItemChance")]
-		class HarmonyPatch_CustomerManager_GetCustomerBuyItemChance {
-			private static void Postfix(float currentPrice, float marketPrice, ref int __result) {
-                __result = 100;
-                DDPlugin._debug_log($"currentPrice: {currentPrice}, marketPrice: {marketPrice}, buyItemChance: {__result}");
-			}
-		}
-
 		[HarmonyPatch(typeof(Customer), "TakeItemFromShelf")]
 		class HarmonyPatch_Customer_TakeItemFromShelf {
 
@@ -539,217 +551,5 @@ public class MindControlPlugin : DDPlugin {
 			}
 		}
 		
-		public static void hotkey_triggered_test_method() {
-			DDPlugin._debug_log("-- hotkey_triggered_test_method --");
-			foreach (Shelf shelf in ShelfManager.GetShelfList()) {
-				DDPlugin._debug_log($"shelf: {shelf.name}");
-				List<ShelfCompartment> compartments = (List<ShelfCompartment>) ReflectionUtils.get_field_value(shelf, "m_ItemCompartmentList");
-				if (compartments == null) {
-					continue;
-				}
-				foreach (ShelfCompartment compartment in compartments) {
-					EItemType item_type = compartment.GetItemType();
-					DDPlugin._debug_log($"[{shelf.name}] index: {compartment.GetIndex()}, item_type: {item_type}");
-					if (item_type == EItemType.None || compartment.GetItemCount() == compartment.GetMaxItemCount()) {
-						continue;
-					}
-					compartment.SpawnItem(compartment.GetMaxItemCount() - compartment.GetItemCount(), false);
-				}
-			}
-		}
-
-		public static void hotkey_triggered_test_method_2() {
-			CustomerBrainWorm.toggle_freeze();
-		}
-	}
-
-	class ExactChange {
-		[HarmonyPatch(typeof(Customer), "GetRandomPayAmount")]
-		class HarmonyPatch_Customer_GetRandomPayAmount {
-			private static bool Prefix(float limit, ref float __result) {
-				if (Settings.m_enabled.Value && Settings.m_always_exact_change.Value) {
-					__result = limit;
-					return false;
-				}
-				return true;
-			}
-		}
-
-		[HarmonyPatch(typeof(CustomerManager), "GetCustomerExactChangeChance")]
-		class HarmonyPatch_CustomerManager_GetCustomerExactChangeChance {
-			private static bool Prefix(ref int __result) {
-				if (Settings.m_enabled.Value && Settings.m_always_exact_change.Value) {
-					__result = 100;
-					return false;
-				}
-				return true;
-			}
-		}
-
-        [HarmonyPatch(typeof(UI_CreditCardScreen), "EnableCreditCardMode")]
-        class HarmonyPatch_UI_CreditCardScreen_EnableCreditCardMode {
-            private static void Postfix(bool isPlayer, ref float ___m_CurrentNumberValue, TextMeshProUGUI ___m_TotalPriceText, InteractableCashierCounter ___m_CashierCounter) {
-				if (!Settings.m_enabled.Value || !isPlayer || !Settings.m_auto_populate_credit.Value) {
-					return;
-				}
-                ___m_CurrentNumberValue = (float) ReflectionUtils.get_field_value(___m_CashierCounter, "m_TotalScannedItemCost");
-				___m_TotalPriceText.text = GameInstance.GetPriceString(___m_CurrentNumberValue / GameInstance.GetCurrencyConversionRate());
-            }
-        }
-    }
-
-	class MaxMoney {
-		[HarmonyPatch(typeof(CustomerManager), "GetCustomerMaxMoney")]
-		class HarmonyPatch_CustomerManager_GetCustomerMaxMoney {
-			private static void Postfix(ref float __result) {
-				if (Settings.m_enabled.Value && Settings.m_max_money_multiplier.Value > 0) {
-					__result *= Settings.m_max_money_multiplier.Value;
-				}
-			}
-		}
-	}
-
-	class RolloverInfo {
-		private static TextMeshProUGUI m_customer_info_text = null;
-		private static CustomerCollider m_hit_collider = null;
-
-		class CustomerCollider : MonoBehaviour {
-			public Customer m_customer = null;
-
-			public static void add_collider_to_customer(Customer __instance) {
-				try {
-					const string NAME = "CustomCustomers_Customer_Collider_Object";
-					Transform collider_object = __instance.transform.Find(NAME);
-					if (collider_object != null) {
-						return;
-					}
-					Transform prefab = WorkerManager.Instance.m_WorkerPrefab.transform.Find("WorkerCollider");
-					if (prefab == null) {
-						DDPlugin._error_log("** HarmonyPatch_Customer_Start ERROR - unable to find Worker -> WorkerCollider prefab gamebject.");
-						return;
-					}
-					GameObject obj = GameObject.Instantiate<GameObject>(prefab.gameObject, __instance.transform);
-					obj.name = NAME;
-					BoxCollider box = obj.GetComponent<BoxCollider>();
-					GameObject.Destroy(obj.GetComponent<WorkerCollider>());
-					obj.AddComponent<CustomerCollider>().m_customer = __instance;
-					obj.layer = LayerMask.NameToLayer("Physics");
-					obj.SetActive(true);
-				} catch (Exception e) {
-					DDPlugin._error_log("** CustomerCollider.add_collider_to_customer ERROR - " + e);
-				}
-			}
-
-			public static void ensure_tooltip_object() {
-				if (m_customer_info_text != null) {
-					return;
-				}
-				m_customer_info_text = GameObject.Instantiate<TextMeshProUGUI>(GameUIScreen.Instance.m_ShopLevelText, CenterDot.Instance.m_DotImage.transform.parent);
-				m_customer_info_text.transform.localPosition = CenterDot.Instance.m_DotImage.transform.localPosition + Vector3.down * 20f;
-				m_customer_info_text.name = "CustomCustomers_Rollover_Info_Text";
-				m_customer_info_text.enableAutoSizing = true;
-				m_customer_info_text.enableWordWrapping = false;
-				m_customer_info_text.fontSizeMin = m_customer_info_text.fontSizeMax = Settings.m_rollover_customer_info_font_size.Value;
-				m_customer_info_text.gameObject.SetActive(false);
-			}
-
-			public static void hide_tooltip() {
-				m_customer_info_text.gameObject.SetActive(false);
-			}
-
-			public static void raycast_customers(InteractionPlayerController __instance) {
-				try {
-					if (!Settings.m_enabled.Value || !Settings.m_rollover_customer_info_enabled.Value) {
-						return;
-					}
-					Ray ray = new Ray(__instance.m_Cam.transform.position, __instance.m_Cam.transform.forward);
-					int mask = LayerMask.GetMask("Physics");
-					CustomerCollider collider;
-					if (Physics.Raycast(ray, out var hit, __instance.m_RayDistance * 3, mask) && (collider = hit.transform.GetComponent<CustomerCollider>()) != null) {
-						(m_hit_collider = collider).show_tooltip();
-					} else if (m_hit_collider != null) {
-						CustomerCollider.hide_tooltip();
-						m_hit_collider = null;
-					}
-				} catch (Exception e) {
-					DDPlugin._error_log("** CustomerCollider.raycast_customers ERROR - " + e);
-				}
-			}
-
-			public void show_tooltip() {
-				m_customer_info_text.text = @$"
-Max Cash:   {this.m_customer.m_MaxMoney:#0.00}
-Item Total: {this.m_customer.m_CurrentCostTotal:#0.00}";
-				m_customer_info_text.gameObject.SetActive(true);
-			}
-
-			class HarmonyPatches {
-				[HarmonyPatch(typeof(LightManager), "Awake")]
-				class HarmonyPatch_LightManager_Awake {
-					private static void Postfix(LightManager __instance) {
-						CustomerCollider.ensure_tooltip_object();
-					}
-				}
-
-				[HarmonyPatch(typeof(InteractionPlayerController), "RaycastNormalState")]
-				class HarmonyPatch_InteractionPlayerController_RaycastNormalState {
-					private static void Postfix(InteractionPlayerController __instance) {
-						CustomerCollider.raycast_customers(__instance);
-					}
-				}
-
-				[HarmonyPatch(typeof(Customer), "Start")]
-				class HarmonyPatch_Customer_Start {
-					private static void Postfix(Customer __instance) {
-						CustomerCollider.add_collider_to_customer(__instance);
-					}
-				}
-			}
-		}
-	}
-
-	class Spawn {
-		[HarmonyPatch(typeof(CustomerManager), "EvaluateMaxCustomerCount")]
-		class HarmonyPatch_CustomerManager_EvaluateMaxCustomerCount {
-			private static void Postfix(CustomerManager __instance) {
-				if (!Settings.m_enabled.Value) {
-					return;
-				}
-				if (Settings.m_spawn_frequency_multiplier.Value > 0) {
-					__instance.m_TimePerCustomer *= Settings.m_spawn_frequency_multiplier.Value;
-				}
-				if (Settings.m_spawn_max_customer_multiplier.Value > 0) {
-					__instance.m_CustomerCountMax = Mathf.RoundToInt(__instance.m_CustomerCountMax * Settings.m_spawn_max_customer_multiplier.Value);
-				}
-			}
-		}
-	}
-
-	class WalkSpeed {
-		private static bool set_speed_multiplier(Customer __instance, ref float ___m_ExtraSpeedMultiplier, float extraSpeedMultiplier = 0f) {
-			return !CustomerBrainWorm.set_speed_multiplier(__instance, ref ___m_ExtraSpeedMultiplier, extraSpeedMultiplier);
-		}
-
-		[HarmonyPatch(typeof(Customer), "SetExtraSpeedMultiplier")]
-		class HarmonyPatch_Customer_SetExtraSpeedMultiplier {
-			private static bool Prefix(Customer __instance, float extraSpeedMultiplier, ref float ___m_ExtraSpeedMultiplier) {
-				return !set_speed_multiplier(__instance, ref ___m_ExtraSpeedMultiplier, extraSpeedMultiplier);
-			}
-		}
-
-		[HarmonyPatch(typeof(Customer), "ResetExtraSpeedMultiplier")]
-		class HarmonyPatch_Customer_ResetExtraSpeedMultiplier {
-			private static bool Prefix(Customer __instance, ref float ___m_ExtraSpeedMultiplier) {
-				return !set_speed_multiplier(__instance, ref ___m_ExtraSpeedMultiplier);
-			}
-		}
-
-		[HarmonyPatch(typeof(Customer), "Update")]
-		class HarmonyPatch_Customer_Update {
-			private static bool Prefix(Customer __instance, ref float ___m_ExtraSpeedMultiplier) {
-				set_speed_multiplier(__instance, ref ___m_ExtraSpeedMultiplier);
-				return true;
-			}
-		}
 	}
 }

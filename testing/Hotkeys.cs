@@ -12,13 +12,15 @@ class Hotkeys {
         }
     }
     private const int HOTKEY_MODIFIER = 0;
-    private const int HOTKEY_FREEZE_TOGGLE = 1;
+    private const int HOTKEY_DEBUG = 1;
+    private const int HOTKEY_DEBUG2 = 2;
     private static Dictionary<int, List<KeyCode>> m_hotkeys = null;
 
     public static void load() {
         m_hotkeys = new Dictionary<int, List<KeyCode>>();
-        set_hotkey(Settings.m_hotkey_modifier.Value, HOTKEY_MODIFIER);
-        set_hotkey(Settings.m_hotkey_freeze_toggle.Value, HOTKEY_FREEZE_TOGGLE);
+        set_hotkey("", HOTKEY_MODIFIER);
+        set_hotkey("F8", HOTKEY_DEBUG);
+        set_hotkey("F9", HOTKEY_DEBUG2);
     }
 
     private static void set_hotkey(string keys_string, int key_index) {
@@ -57,8 +59,11 @@ class Hotkeys {
             if (!is_modifier_hotkey_down()) {
                 return;
             }
-            if (is_hotkey_down(HOTKEY_FREEZE_TOGGLE)) {
-                MindControlPlugin.CustomerBrainWorm.toggle_freeze();
+            if (is_hotkey_down(HOTKEY_DEBUG)) {
+                TestingPlugin.CheatRestock.cheat_restock_everything();
+            }
+            if (is_hotkey_down(HOTKEY_DEBUG2)) {
+                
             }
         }
     }
