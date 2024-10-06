@@ -19,6 +19,7 @@ public class Settings {
     public static ConfigEntry<bool> m_twenty_four_hour_format;
     public static ConfigEntry<int> m_day_begin_hour;
     public static ConfigEntry<int> m_day_end_hour;
+    public static ConfigEntry<bool> m_run_time_before_open;
 
     // Hotkeys
     public static ConfigEntry<string> m_hotkey_modifier;
@@ -51,7 +52,8 @@ public class Settings {
         TimeManagementPlugin.GameClock.m_day_end_hour = m_day_end_hour.Value;
         DDPlugin._info_log($"Day Begin Hour: {TimeManagementPlugin.GameClock.m_day_begin_hour}");
         DDPlugin._info_log($"Day End Hour: {TimeManagementPlugin.GameClock.m_day_end_hour}");
-
+        m_run_time_before_open = this.m_plugin.Config.Bind<bool>("General", "Run Time Before Open", false, "[This option is primarily for debugging and for fixing issues some users have reported with other mods (not mine =P).  It also makes things more realistic... if you're into that sorta thing] If true then time will begin running on a new day without opening the shop.");
+        
         // Hotkeys
         m_hotkey_modifier = this.m_plugin.Config.Bind<string>("Hotkeys", "Hotkey - Modifier", "LeftControl,RightControl", "Comma-separated list of Unity Keycodes used as the special modifier key (i.e. ctrl,alt,command) one of which is required to be down for hotkeys to work.  Set to '' (blank string) to not require a special key (not recommended).  See this link for valid Unity KeyCode strings (https://docs.unity3d.com/ScriptReference/KeyCode.html)");
         m_hotkey_time_stop_toggle = this.m_plugin.Config.Bind<string>("Hotkeys", "Time Start/Stop Toggle Hotkey", "Alpha0,Keypad0", "Comma-separated list of Unity Keycodes, any of which will toggle the passage of time.  See this link for valid Unity KeyCode strings (https://docs.unity3d.com/ScriptReference/KeyCode.html)");

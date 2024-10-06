@@ -14,7 +14,7 @@ public static class PluginInfo {
 	public const string NAME = "time_management";
 	public const string SHORT_DESCRIPTION = "Change shop open/close hours.  Slow down, speed up, stop, and even reverse time using configurable hotkeys.";
 
-	public const string VERSION = "0.0.2";
+	public const string VERSION = "0.0.3";
 
 	public const string AUTHOR = "devopsdinosaur";
 	public const string GAME_TITLE = "TCG Shop Simulator";
@@ -274,7 +274,6 @@ public class TimeManagementPlugin : DDPlugin {
 					LightSpinner.Instance.start(m_day_begin_hour, 0);
 					ReflectionUtils.invoke_method(__instance, "EvaluateTimeClock");
 					___m_HasDayEnded = false;
-					CPlayerData.m_IsShopOnceOpen = true;
 					CEventManager.QueueEvent(new CEventPlayer_OnDayStarted());
 					return false;
 				} catch (Exception e) {
@@ -332,7 +331,7 @@ public class TimeManagementPlugin : DDPlugin {
 						___m_HasDayEnded = true;
 						CEventManager.QueueEvent(new CEventPlayer_OnDayEnded());
 					}
-                    if ((__instance.m_TimerLerpSpeed = (m_is_time_stopped || !CPlayerData.m_IsShopOnceOpen || ___m_HasDayEnded ? 0 : (Settings.m_time_speed.Value < 0 ?
+                    if ((__instance.m_TimerLerpSpeed = (m_is_time_stopped || (!CPlayerData.m_IsShopOnceOpen && !Settings.m_run_time_before_open.Value) || ___m_HasDayEnded ? 0 : (Settings.m_time_speed.Value < 0 ?
 						(___m_TimeHour == m_day_begin_hour && ___m_TimeMin <= 0 ? 0 : Settings.m_time_speed.Value) :
                         (___m_TimeHour == m_day_end_hour ? 0 : Settings.m_time_speed.Value)
 					))) != 0) {

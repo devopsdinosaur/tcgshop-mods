@@ -1,4 +1,9 @@
-﻿# 0.0.2
+﻿# 0.0.3
+
+## Features
+- Added an option to run time before opening the store when a day begins
+
+# 0.0.2
 
 ## Bug Fixes
 - Fixed bug causing background music not to start based on time of day
