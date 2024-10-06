@@ -118,15 +118,6 @@ public class MindControlPlugin : DDPlugin {
 				}
 			}
 
-			[HarmonyPatch(typeof(CustomerManager), "GetCustomerBuyItemChance")]
-			class HarmonyPatch_CustomerManager_GetCustomerBuyItemChance {
-				private static void Postfix(float currentPrice, float marketPrice, ref int __result) {
-					if (Settings.m_enabled.Value) {
-						get_customer_buy_item_chance(currentPrice, marketPrice, ref __result);
-					}
-				}
-			}
-
 			[HarmonyPatch(typeof(Customer), "Update")]
 			class HarmonyPatch_Customer_Update {
 				private static bool Prefix(Customer __instance, ref Quaternion ___m_TargetLerpRotation, float ___m_RotationLerpSpeed, ref Vector3 ___m_LastFramePos, ref bool ___m_IsCheckScanItemOutOfBound, ref float ___m_CheckScanItemOutOfBoundTimer, ref bool ___m_IsBeingSprayed, ref float ___m_BeingSprayedResetTimer, ref float ___m_BeingSprayedResetTimeMax, ref float ___m_Timer, ref int ___m_FailFindItemAttemptCount, List<Item> ___m_ItemInBagList, List<InteractableCard3d> ___m_CardInBagList, ref bool ___m_UnableToFindQueue, bool ___m_IsInsideShop, ref bool ___m_HasTookItemFromShelf, ref bool ___m_HasTookCardFromShelf, InteractableCashierCounter ___m_CurrentQueueCashierCounter, bool ___m_IsAtPayingPosition, InteractablePlayTable ___m_CurrentPlayTable, int ___m_CurrentPlayTableSeatIndex, Vector3 ___m_LerpStartPos, Vector3 ___m_TargetLerpPos, ref float ___m_SecondaryTimer, float ___m_SecondaryTimerMax, ref float ___m_TimerMax, ref bool ___m_ReachedEndOfPath, ref float ___m_LastRepath, Transform ___m_TargetTransform, ref bool ___m_IsWaitingForPathCallback, Path ___m_Path, ref int ___m_CurrentWaypoint, ref bool ___m_IsSmelly, float ___m_ModifiedSpeed, float ___m_ExtraSpeedMultiplier) {
@@ -184,10 +175,6 @@ public class MindControlPlugin : DDPlugin {
 				this.m_customer.SetExtraSpeedMultiplier(this.m_original_speed);
 				this.m_customer.m_Anim.speed = this.m_original_animation_speed;
 			}
-		}
-
-		private static void get_customer_buy_item_chance(float currentPrice, float marketPrice, ref int __result) {
-			__result = Mathf.FloorToInt((float) __result * DecisionParams.chance_multiplier_buy_item);
 		}
 
 		private float get_time() {

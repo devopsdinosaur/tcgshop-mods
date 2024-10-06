@@ -55,7 +55,7 @@ public class QuickScanPlugin : DDPlugin {
 					if (scan_item.m_Item == item || !customer_items.Contains(scan_item.m_Item)) {
 						continue;
 					}
-					DDPlugin._debug_log(scan_item.m_Item);
+					//DDPlugin._debug_log(scan_item.m_Item);
 					scan_item.m_Item.m_Collider.enabled = false;
 					scan_item.m_Item.m_Rigidbody.isKinematic = true;
 					float currentPrice = scan_item.m_Item.GetCurrentPrice();

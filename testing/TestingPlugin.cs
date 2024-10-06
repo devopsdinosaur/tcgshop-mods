@@ -66,8 +66,8 @@ public class TestingPlugin : DDPlugin {
 
 	public class CheatRestock {
 		public static void cheat_restock_everything() {
-			DDPlugin._debug_log("-- hotkey_triggered_test_method --");
-			foreach (Shelf shelf in ShelfManager.GetShelfList()) {
+			DDPlugin._debug_log("-- cheat_restock_everything --");
+			foreach (Shelf shelf in ShelfManager.Instance.m_ShelfList) {
 				DDPlugin._debug_log($"shelf: {shelf.name}");
 				List<ShelfCompartment> compartments = (List<ShelfCompartment>) ReflectionUtils.get_field_value(shelf, "m_ItemCompartmentList");
 				if (compartments == null) {
@@ -80,6 +80,34 @@ public class TestingPlugin : DDPlugin {
 						continue;
 					}
 					compartment.SpawnItem(compartment.GetMaxItemCount() - compartment.GetItemCount(), false);
+				}
+			}
+			Queue<CardData> get_more_cards() {
+				ReflectionUtils.invoke_method(CardOpeningSequence.Instance, "GetPackContent", new object[] {true, false, true, ECollectionPackType.BasicCardPack});
+				return new Queue<CardData>((List<CardData>) ReflectionUtils.get_field_value(CardOpeningSequence.Instance, "m_SecondaryRolledCardDataList"));
+			}
+			Queue<CardData> cards = get_more_cards();
+			foreach (CardShelf shelf in ShelfManager.Instance.m_CardShelfList) {
+				DDPlugin._debug_log($"card shelf: {shelf.name}");
+				foreach (InteractableCardCompartment compartment in (List<InteractableCardCompartment>) ReflectionUtils.get_field_value(shelf, "m_CardCompartmentList")) {
+					if (cards.Count == 0) {
+						cards = get_more_cards();
+					}
+					CardData card = cards.Dequeue();
+					float market_price = CPlayerData.GetCardMarketPrice(card);
+					CPlayerData.SetCardPrice(card, market_price + market_price * 0.2f);
+					Card3dUIGroup cardUI = CSingleton<Card3dUISpawner>.Instance.GetCardUI();
+					InteractableCard3d component = ShelfManager.SpawnInteractableObject(EObjectType.Card3d).GetComponent<InteractableCard3d>();
+					cardUI.m_IgnoreCulling = true;
+					cardUI.m_CardUI.SetFoilCullListVisibility(isActive: true);
+					cardUI.m_CardUI.ResetFarDistanceCull();
+					cardUI.m_CardUI.SetCardUI(card);
+					cardUI.transform.position = component.transform.position;
+					cardUI.transform.rotation = component.transform.rotation;
+					component.SetCardUIFollow(cardUI);
+					component.SetEnableCollision(isEnable: false);
+					compartment.SetCardOnShelf(component);
+					cardUI.m_IgnoreCulling = false;
 				}
 			}
 		}

@@ -5,6 +5,8 @@ Current Version: [[version]] ([url=https://github.com/[[author]]/[[repo]]/blob/m
 
 [[short_description]]
 
+[b]Definitely download my [url=https://www.nexusmods.com/tcgcardshopsimulator/mods/84]Quick Scan[/url] because you and your workers will be clicking on a LOT more items =)[/b]
+
 See the config options below for a complete list of features and how to use them.  If you have ideas or issues see the [i]Source Code and Bug Reporting[/i] section at the bottom of the page.  Thanks!
 
 [size=4][b][u]Installation[/u][/b][/size]
