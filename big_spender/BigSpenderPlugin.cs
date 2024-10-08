@@ -13,7 +13,7 @@ public static class PluginInfo {
 	public const string NAME = "big_spender";
 	public const string SHORT_DESCRIPTION = "No more single booster purchases!  Adjust customers' chance to buy and amount of items they pick up.";
 
-	public const string VERSION = "0.0.1";
+	public const string VERSION = "0.0.2";
 
 	public const string AUTHOR = "devopsdinosaur";
 	public const string GAME_TITLE = "TCG Shop Simulator";
@@ -169,7 +169,7 @@ public class BigSpenderPlugin : DDPlugin {
 	class HarmonyPatch_Customer_TakeItemFromShelf {
 		private static bool Prefix(Customer __instance, ref bool ___m_IsInsideShop, Shelf ___m_CurrentShelf, ShelfCompartment ___m_CurrentItemCompartment, bool ___m_IsSmelly, List<Item> ___m_ItemInBagList, List<InteractableCard3d> ___m_CardInBagList, ref int ___m_FailFindItemAttemptCount, ref bool ___m_HasTookItemFromShelf) {
 			try {
-				DDPlugin._debug_log("TakeItemFromShelf");
+				//DDPlugin._debug_log("TakeItemFromShelf");
 				___m_IsInsideShop = true;
 				if (!___m_CurrentShelf) {
 					__instance.m_CurrentState = ECustomerState.Idle;
@@ -193,7 +193,7 @@ public class BigSpenderPlugin : DDPlugin {
 					bool already_blabbed = false;
 					for (int i = 0; i < max_item_count; i++) {
 						if (!already_blabbed) {
-							already_blabbed = (bool) ReflectionUtils.invoke_method(__instance, "BuyItemSpeechPopup", new object[] { customerBuyItemChance, itemPrice, itemData.name });
+							already_blabbed = (bool) ReflectionUtils.invoke_method(__instance, "BuyItemSpeechPopup", new object[] {customerBuyItemChance, itemPrice, itemData.name, lastItem.GetItemType()});
 						}
 						//DDPlugin._debug_log($"[{i}] current_item_buy_chance: {current_item_buy_chance}");
 						if (UnityEngine.Random.Range(0, 100) <= current_item_buy_chance) {
@@ -216,7 +216,7 @@ public class BigSpenderPlugin : DDPlugin {
 						__instance.m_CurrentCostTotal += itemPrice;
 						grabbed_count++;
 					}
-					DDPlugin._debug_log($"customer hash: {__instance.GetHashCode()}, grabbed_count: {grabbed_count}, current_cost: {__instance.m_CurrentCostTotal}, max_money: {__instance.m_MaxMoney}");
+					//DDPlugin._debug_log($"customer hash: {__instance.GetHashCode()}, grabbed_count: {grabbed_count}, current_cost: {__instance.m_CurrentCostTotal}, max_money: {__instance.m_MaxMoney}");
 					if (grabbed_count > 0) {
 						__instance.m_ShoppingBagTransform.gameObject.SetActive(value: true);
 						__instance.m_Anim.SetBool("HoldingBag", value: true);
@@ -243,7 +243,7 @@ public class BigSpenderPlugin : DDPlugin {
 	class HarmonyPatch_Customer_TakeCardFromShelf {
 		private static bool Prefix(Customer __instance, ref bool ___m_IsInsideShop, CardShelf ___m_CurrentCardShelf, InteractableCardCompartment ___m_CurrentCardCompartment, List<Item> ___m_ItemInBagList, List<InteractableCard3d> ___m_CardInBagList, ref int ___m_FailFindItemAttemptCount, ref bool ___m_HasTookItemFromShelf, ref bool ___m_HasTookCardFromShelf) {
 			try {
-				DDPlugin._debug_log("TakeCardFromShelf");
+				//DDPlugin._debug_log("TakeCardFromShelf");
 				___m_IsInsideShop = true;
 				if (!___m_CurrentCardShelf) {
 					__instance.m_CurrentState = ECustomerState.Idle;

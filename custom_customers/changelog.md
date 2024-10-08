@@ -1,15 +1,17 @@
 ﻿# 0.0.5
 
 ## Features
-- 
+- Added option for shop rollover info (displayed when rolling over open sign or cash register)
+- Added customer state info to rollover text
+- Added Spawn - Max Customer Models option (see settings section on Nexus webpage for info)
 
 ## Bug Fixes
 - Rollover customer info now formats money to two decimal places
+- Max customer spawn will now work as expected (with new option)
 
 ## In Progress
 - Credit machine pre-population does not work with non-USD
 - Randomize customer animations (stop the synchronized dancing)
-- Add ability to adjust odds of buying and item amounts
 
 # 0.0.4
 

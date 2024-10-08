@@ -119,6 +119,8 @@ public class CustomCustomersPlugin : DDPlugin {
 
 		class CustomerCollider : MonoBehaviour {
 			public Customer m_customer = null;
+			private static int m_layer_physics = 0;
+			private static int m_layer_shop_model = 0;
 
 			public static void add_collider_to_customer(Customer __instance) {
 				try {
@@ -151,6 +153,7 @@ public class CustomCustomersPlugin : DDPlugin {
 				m_customer_info_text = GameObject.Instantiate<TextMeshProUGUI>(GameUIScreen.Instance.m_ShopLevelText, CenterDot.Instance.m_DotImage.transform.parent);
 				m_customer_info_text.transform.localPosition = CenterDot.Instance.m_DotImage.transform.localPosition + Vector3.down * 20f;
 				m_customer_info_text.name = "CustomCustomers_Rollover_Info_Text";
+				m_customer_info_text.alignment = TextAlignmentOptions.TopLeft;
 				m_customer_info_text.enableAutoSizing = true;
 				m_customer_info_text.enableWordWrapping = false;
 				m_customer_info_text.fontSizeMin = m_customer_info_text.fontSizeMax = Settings.m_rollover_customer_info_font_size.Value;
@@ -163,18 +166,29 @@ public class CustomCustomersPlugin : DDPlugin {
 
 			public static void raycast_customers(InteractionPlayerController __instance) {
 				try {
-					if (!Settings.m_enabled.Value || !Settings.m_rollover_customer_info_enabled.Value) {
+					if (!Settings.m_enabled.Value || !(Settings.m_rollover_customer_info_enabled.Value || Settings.m_rollover_shop_info_enabled.Value)) {
 						return;
 					}
 					Ray ray = new Ray(__instance.m_Cam.transform.position, __instance.m_Cam.transform.forward);
-					int mask = LayerMask.GetMask("Physics");
-					CustomerCollider collider;
-					if (Physics.Raycast(ray, out var hit, __instance.m_RayDistance * 3, mask) && (collider = hit.transform.GetComponent<CustomerCollider>()) != null) {
-						(m_hit_collider = collider).show_tooltip();
-					} else if (m_hit_collider != null) {
-						CustomerCollider.hide_tooltip();
-						m_hit_collider = null;
+					if (m_layer_physics == 0) {
+						m_layer_physics = LayerMask.GetMask("Physics");
 					}
+					if (m_layer_shop_model == 0) {
+						m_layer_shop_model = LayerMask.GetMask("ShopModel");
+					}
+					int mask = (Settings.m_rollover_customer_info_enabled.Value ? m_layer_physics : 0) | (Settings.m_rollover_shop_info_enabled.Value ? m_layer_shop_model : 0);
+					CustomerCollider collider;
+					if (Physics.Raycast(ray, out var hit, __instance.m_RayDistance * 5, mask)) {
+						if (Settings.m_rollover_customer_info_enabled.Value && (collider = hit.transform.GetComponent<CustomerCollider>()) != null) {
+							(m_hit_collider = collider).show_tooltip();
+							return;
+						} else if (Settings.m_rollover_shop_info_enabled.Value && (hit.transform.GetComponent<InteractableCashierCounter>() != null || hit.transform.GetComponent<InteractableOpenCloseSign>() != null)) {
+							show_shop_tooltip();
+							return;
+						}
+					}	
+					hide_tooltip();
+					m_hit_collider = null;
 				} catch (Exception e) {
 					DDPlugin._error_log("** CustomerCollider.raycast_customers ERROR - " + e);
 				}
@@ -182,8 +196,33 @@ public class CustomCustomersPlugin : DDPlugin {
 
 			public void show_tooltip() {
 				m_customer_info_text.text = @$"
-Max Cash:   {this.m_customer.m_MaxMoney:#0.00}
-Item Total: {this.m_customer.m_CurrentCostTotal:#0.00}";
+Max Cash: {this.m_customer.m_MaxMoney:#0.00}
+Item Total: {this.m_customer.m_CurrentCostTotal:#0.00}
+Cur State: {Enum.GetName(typeof(ECustomerState), this.m_customer.m_CurrentState)}
+";
+				m_customer_info_text.gameObject.SetActive(true);
+			}
+
+			public static void show_shop_tooltip() {
+				Dictionary<ECustomerState, int> state_counts = new Dictionary<ECustomerState, int>();
+				foreach (ECustomerState state in Enum.GetValues(typeof(ECustomerState))) {
+					state_counts[state] = 0;
+				}
+				List<Customer> customers = (List<Customer>) ReflectionUtils.get_field_value(CustomerManager.Instance, "m_CustomerList");
+				foreach (Customer customer in customers) {
+					state_counts[customer.m_CurrentState]++;
+				}
+				m_customer_info_text.text = @$"
+Shop Status: {(CPlayerData.m_IsShopOpen ? "Open" : "Closed")}
+Customers (Total: {customers.Count} / {CustomerManager.Instance.m_CustomerCountMax} [max])
+- Browsing: {state_counts[ECustomerState.WalkToShelf] + state_counts[ECustomerState.TakingItemFromShelf] + state_counts[ECustomerState.WalkToCardShelf] + state_counts[ECustomerState.TakingItemFromCardShelf]}
+- Exiting: {state_counts[ECustomerState.ExitingShop]}
+- Idle: {state_counts[ECustomerState.Idle]}
+- In Line: {state_counts[ECustomerState.QueuingToPay]}
+- Playing: {state_counts[ECustomerState.PlayingAtTable]}
+- Thinking: {state_counts[ECustomerState.WantToPay]}
+- Waiting for Table: {state_counts[ECustomerState.WantToPlayGame]}
+";
 				m_customer_info_text.gameObject.SetActive(true);
 			}
 
@@ -213,6 +252,29 @@ Item Total: {this.m_customer.m_CurrentCostTotal:#0.00}";
 	}
 
 	class Spawn {
+		[HarmonyPatch(typeof(CustomerManager), "Start")]
+		class HarmonyPatch_Customer_CustomerManager {
+			private static bool Prefix(CustomerManager __instance) {
+				try {
+					List<GameObject> customers = new List<GameObject>();
+					for (int index = 0; index < __instance.m_CustomerParentGrp.childCount; index++) {
+						customers.Add(__instance.m_CustomerParentGrp.GetChild(index).gameObject);
+					}
+					int customer_index = 0;
+					for (int counter = 0; counter < Settings.m_max_customer_models.Value - customers.Count; counter++) {
+						GameObject.Instantiate<GameObject>(customers[customer_index].gameObject, __instance.m_CustomerParentGrp);
+						if (++customer_index >= customers.Count) {
+							customer_index = 0;
+						}
+					}
+					return true;
+				} catch (Exception e) {
+					DDPlugin._error_log("** HarmonyPatch_Customer_CustomerManager ERROR - " + e);
+				}
+				return true;
+			}
+		}
+
 		[HarmonyPatch(typeof(CustomerManager), "EvaluateMaxCustomerCount")]
 		class HarmonyPatch_CustomerManager_EvaluateMaxCustomerCount {
 			private static void Postfix(CustomerManager __instance) {
@@ -223,7 +285,7 @@ Item Total: {this.m_customer.m_CurrentCostTotal:#0.00}";
 					__instance.m_TimePerCustomer *= Settings.m_spawn_frequency_multiplier.Value;
 				}
 				if (Settings.m_spawn_max_customer_multiplier.Value > 0) {
-					__instance.m_CustomerCountMax = Mathf.RoundToInt(__instance.m_CustomerCountMax * Settings.m_spawn_max_customer_multiplier.Value);
+					__instance.m_CustomerCountMax = Mathf.Min(Mathf.RoundToInt(__instance.m_CustomerCountMax * Settings.m_spawn_max_customer_multiplier.Value), Settings.m_max_customer_models.Value);
 				}
 			}
 		}
