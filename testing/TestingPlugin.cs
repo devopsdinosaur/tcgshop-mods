@@ -113,6 +113,19 @@ public class TestingPlugin : DDPlugin {
 		}
 	}
 
+	class Model {
+		[HarmonyPatch(typeof(CGameManager), "Awake")]
+		class HarmonyPatch_CGameManager_Awake {
+			private static void Postfix() {
+				CEventManager.AddListener<CEventPlayer_GameDataFinishLoaded>(on_game_data_finish_loaded);
+			}
+		}
+
+		private static void on_game_data_finish_loaded(CEventPlayer_GameDataFinishLoaded evt) {
+			DDPlugin._debug_log("finished loading");
+		}
+	}
+
 	class Smelliness {
 		[HarmonyPatch(typeof(Customer), "IsSmelly")]
 		class HarmonyPatch_Customer_IsSmelly {
