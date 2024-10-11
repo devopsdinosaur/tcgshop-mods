@@ -13,7 +13,7 @@ public static class PluginInfo {
 	public const string NAME = "custom_customers";
 	public const string SHORT_DESCRIPTION = "Configurable tweaks (walk speed, exact change, spending money, etc) to customers to improve quality of life for your shop!";
 
-	public const string VERSION = "0.0.5";
+	public const string VERSION = "0.0.6";
 
 	public const string AUTHOR = "devopsdinosaur";
 	public const string GAME_TITLE = "TCG Shop Simulator";
@@ -209,16 +209,20 @@ Cur State: {Enum.GetName(typeof(ECustomerState), this.m_customer.m_CurrentState)
 					state_counts[state] = 0;
 				}
 				List<Customer> customers = (List<Customer>) ReflectionUtils.get_field_value(CustomerManager.Instance, "m_CustomerList");
+				int active_customer_count = 0;
 				foreach (Customer customer in customers) {
-					state_counts[customer.m_CurrentState]++;
+					if (customer.gameObject.activeSelf) {
+						state_counts[customer.m_CurrentState]++;
+						active_customer_count++;
+					}
 				}
 				m_customer_info_text.text = @$"
 Shop Status: {(CPlayerData.m_IsShopOpen ? "Open" : "Closed")}
-Customers (Total: {customers.Count} / {CustomerManager.Instance.m_CustomerCountMax} [max])
+Customers (Total: {active_customer_count} / {Mathf.Max(CustomerManager.Instance.m_CustomerCountMax, active_customer_count)} [max])
 - Browsing: {state_counts[ECustomerState.WalkToShelf] + state_counts[ECustomerState.TakingItemFromShelf] + state_counts[ECustomerState.WalkToCardShelf] + state_counts[ECustomerState.TakingItemFromCardShelf]}
 - Exiting: {state_counts[ECustomerState.ExitingShop]}
 - Idle: {state_counts[ECustomerState.Idle]}
-- In Line: {state_counts[ECustomerState.QueuingToPay]}
+- In Line: {state_counts[ECustomerState.QueuingToPay] + state_counts[ECustomerState.ReadyToPay]}
 - Playing: {state_counts[ECustomerState.PlayingAtTable]}
 - Thinking: {state_counts[ECustomerState.WantToPay]}
 - Waiting for Table: {state_counts[ECustomerState.WantToPlayGame]}
@@ -238,6 +242,13 @@ Customers (Total: {customers.Count} / {CustomerManager.Instance.m_CustomerCountM
 				class HarmonyPatch_InteractionPlayerController_RaycastNormalState {
 					private static void Postfix(InteractionPlayerController __instance) {
 						CustomerCollider.raycast_customers(__instance);
+					}
+				}
+
+				[HarmonyPatch(typeof(InteractionPlayerController), "RaycastCashCounterState")]
+				class HarmonyPatch_InteractionPlayerController_RaycastCashCounterState {
+					private static void Postfix(InteractionPlayerController __instance) {
+						CustomerCollider.hide_tooltip();
 					}
 				}
 

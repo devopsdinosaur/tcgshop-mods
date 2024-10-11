@@ -1,4 +1,9 @@
-﻿# 0.0.5
+﻿# 0.0.6
+
+## Bug Fixes
+- Minor fixes to shop rollover tooltip
+
+# 0.0.5
 
 ## Features
 - Added option for shop rollover info (displayed when rolling over open sign or cash register)
