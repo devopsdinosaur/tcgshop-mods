@@ -122,14 +122,16 @@ public class TestingPlugin : DDPlugin {
 		}
 
 		private static void on_game_data_finish_loaded(CEventPlayer_GameDataFinishLoaded evt) {
-			List<Customer> customers = (List<Customer>) ReflectionUtils.get_field_value(CustomerManager.Instance, "m_CustomerList");
-			Customer customer = null;
-			foreach (Customer _customer in customers) {
-				if (!_customer.gameObject.activeSelf) {
-					customer = _customer;
-					break;
-				}
-			}
+			foreach (Customer customer in Resources			
+			
+			//List<Customer> customers = (List<Customer>) ReflectionUtils.get_field_value(CustomerManager.Instance, "m_CustomerList");
+			//Customer customer = null;
+			//foreach (Customer _customer in customers) {
+			//	if (!_customer.gameObject.activeSelf) {
+			//		customer = _customer;
+			//		break;
+			//	}
+			//}
 		}
 	}
 
