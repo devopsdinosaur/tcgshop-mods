@@ -13,7 +13,7 @@ public static class PluginInfo {
 	public const string NAME = "custom_customers";
 	public const string SHORT_DESCRIPTION = "Configurable tweaks (walk speed, exact change, spending money, etc) to customers to improve quality of life for your shop!";
 
-	public const string VERSION = "0.0.6";
+	public const string VERSION = "0.0.7";
 
 	public const string AUTHOR = "devopsdinosaur";
 	public const string GAME_TITLE = "TCG Shop Simulator";
@@ -264,23 +264,31 @@ Customers (Total: {active_customer_count} / {Mathf.Max(CustomerManager.Instance.
 
 	class Spawn {
 		[HarmonyPatch(typeof(CustomerManager), "Start")]
-		class HarmonyPatch_Customer_CustomerManager {
+		class HarmonyPatch_CustomerManager_Start {
 			private static bool Prefix(CustomerManager __instance) {
 				try {
-					List<GameObject> customers = new List<GameObject>();
+					GameObject prefabs_parent = new GameObject("Customer_Prefabs_Parent");
+					prefabs_parent.transform.SetParent(__instance.m_CustomerParentGrp.parent);
+					__instance.m_CustomerFemalePrefab.transform.SetParent(prefabs_parent.transform);
+					__instance.m_CustomerPrefab.transform.SetParent(prefabs_parent.transform);
+					GameObject trash_parent = new GameObject("Destined_to_Die");
+					trash_parent.transform.SetParent(__instance.m_CustomerParentGrp.parent);
+					List<GameObject> children = new List<GameObject>();
 					for (int index = 0; index < __instance.m_CustomerParentGrp.childCount; index++) {
-						customers.Add(__instance.m_CustomerParentGrp.GetChild(index).gameObject);
+						children.Add(__instance.m_CustomerParentGrp.GetChild(index).gameObject);
 					}
-					int customer_index = 0;
-					for (int counter = 0; counter < Settings.m_max_customer_models.Value - customers.Count; counter++) {
-						GameObject.Instantiate<GameObject>(customers[customer_index].gameObject, __instance.m_CustomerParentGrp);
-						if (++customer_index >= customers.Count) {
-							customer_index = 0;
-						}
+					foreach (GameObject child in children) {
+						child.transform.SetParent(trash_parent.transform);
+					}
+					GameObject.Destroy(trash_parent);
+					for (int index = 0; index < Settings.m_max_customer_models.Value; index++) {
+						Customer customer = GameObject.Instantiate((UnityEngine.Random.Range(1, 100) <= Settings.m_spawn_percent_female.Value ? __instance.m_CustomerFemalePrefab : __instance.m_CustomerPrefab), __instance.m_CustomerParentGrp);
+						customer.name = $"CustomCustomer_{index:D3}";
+						customer.transform.SetSiblingIndex(index);
 					}
 					return true;
 				} catch (Exception e) {
-					DDPlugin._error_log("** HarmonyPatch_Customer_CustomerManager ERROR - " + e);
+					DDPlugin._error_log("** HarmonyPatch_CustomerManager_Start.Prefix ERROR - " + e);
 				}
 				return true;
 			}

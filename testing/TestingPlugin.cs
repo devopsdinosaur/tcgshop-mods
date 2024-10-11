@@ -122,8 +122,6 @@ public class TestingPlugin : DDPlugin {
 		}
 
 		private static void on_game_data_finish_loaded(CEventPlayer_GameDataFinishLoaded evt) {
-			foreach (Customer customer in Resources			
-			
 			//List<Customer> customers = (List<Customer>) ReflectionUtils.get_field_value(CustomerManager.Instance, "m_CustomerList");
 			//Customer customer = null;
 			//foreach (Customer _customer in customers) {
@@ -133,6 +131,30 @@ public class TestingPlugin : DDPlugin {
 			//	}
 			//}
 		}
+
+		/*
+		[HarmonyPatch(typeof(CustomerManager), "Start")]
+		class HarmonyPatch_CustomerManager_Start {
+			private static bool Prefix(CustomerManager __instance, ref int ___m_SpawnedCustomerCount) {
+				try {
+					int customer_count = 0;
+					foreach (Customer customer in Resources.FindObjectsOfTypeAll<Customer>()) {
+						GameObject.Destroy(customer.gameObject);
+						customer_count++;
+					}
+					for (int index = 0; index < customer_count; index++) {
+						Customer customer = GameObject.Instantiate(__instance.m_CustomerFemalePrefab, __instance.m_CustomerParentGrp);
+						customer.name = $"CustomCustomer_{index:D3}";
+						customer.transform.SetSiblingIndex(index);
+					}
+					return true;
+				} catch (Exception e) {
+					DDPlugin._error_log("** HarmonyPatch_CustomerManager_AddCustomerPrefab.Postfix ERROR - " + e);
+				}
+				return true;
+			}
+		}
+		*/
 	}
 
 	class Smelliness {

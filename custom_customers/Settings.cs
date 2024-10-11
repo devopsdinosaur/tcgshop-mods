@@ -23,6 +23,7 @@ public class Settings {
     public static ConfigEntry<int> m_rollover_customer_info_font_size;
     public static ConfigEntry<bool> m_rollover_shop_info_enabled;
     public static ConfigEntry<float> m_max_money_multiplier;
+    public static ConfigEntry<int> m_spawn_percent_female;
     public static ConfigEntry<float> m_spawn_frequency_multiplier;
     public static ConfigEntry<float> m_spawn_max_customer_multiplier;
     public static ConfigEntry<int> m_max_customer_models;
@@ -48,5 +49,6 @@ public class Settings {
         } else if (m_max_customer_models.Value > ABSOLUTE_MAX_CHARACTER_MODELS) {
             m_max_customer_models.Value = ABSOLUTE_MAX_CHARACTER_MODELS;
         }
+        m_spawn_percent_female = this.m_plugin.Config.Bind<int>("General", "Spawn - Percent Women", 33, "Percent (between 0 [none] and 100 [all]) of spawned customers that will be women (float, default 33 [33% game default]).  Changing this value requires a game reload.");
     }
 }

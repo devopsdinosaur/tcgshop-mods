@@ -1,4 +1,9 @@
-﻿# 0.0.6
+﻿# 0.0.7
+
+## Features
+- Added option to set the percentage of spawned customers that are female
+
+# 0.0.6
 
 ## Bug Fixes
 - Minor fixes to shop rollover tooltip
