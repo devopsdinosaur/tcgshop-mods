@@ -13,7 +13,7 @@ public static class PluginInfo {
 	public const string NAME = "quick_scan";
 	public const string SHORT_DESCRIPTION = "Scan all items on the counter with a single click!  Works on employees too!";
 
-	public const string VERSION = "0.0.2";
+	public const string VERSION = "0.0.3";
 
 	public const string AUTHOR = "devopsdinosaur";
 	public const string GAME_TITLE = "TCG Shop Simulator";
@@ -121,5 +121,27 @@ public class QuickScanPlugin : DDPlugin {
 				scan_all_cards(__instance, card, ref ___m_ItemScannedCount, ___m_CurrentQueueCashierCounter, ref ___m_TotalScannedItemCost);
 			}
 		}
+
+		[HarmonyPatch(typeof(SoundManager), "PlayAudio")]
+		class HarmonyPatch_SoundManager_PlayAudio {
+			const float MIN_TIME_BETWEEN_SCAN_SOUNDS = 0.5f;
+			private static float m_time_of_last_scan_sound = float.MinValue;
+			private static bool Prefix() {
+				try {
+					if (!Settings.m_enabled.Value) {
+						return true;
+					}
+					if (Time.time - m_time_of_last_scan_sound < MIN_TIME_BETWEEN_SCAN_SOUNDS) {
+						return false;
+					}
+					m_time_of_last_scan_sound = Time.time;
+					return true;
+				} catch (Exception e) {
+					DDPlugin._error_log("** HarmonyPatch_SoundManager_PlayAudio.Prefix ERROR - " + e);
+				}
+				return true;
+			}
+		}
+
 	}
 }

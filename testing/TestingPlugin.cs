@@ -10,6 +10,9 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using TMPro;
+using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
+using System.IO;
 
 public static class PluginInfo {
 
@@ -113,6 +116,37 @@ public class TestingPlugin : DDPlugin {
 		}
 	}
 
+	public class Debugging {
+		public class PositionInfo : MonoBehaviour {
+			private static string OBJECT_NAME = "TestingPlugin_Position_Info_Text";
+			private TextMeshProUGUI m_info_text = null;
+
+			private void Awake() {
+				Transform offset_from = GameUIScreen.Instance.m_AddMoneyText.transform;
+				Vector3 offset_direction = Vector3.down;
+				float offset_distance = 20f;
+				this.m_info_text = GameObject.Instantiate<TextMeshProUGUI>(GameUIScreen.Instance.m_ShopLevelText, offset_from.parent);
+				m_info_text.transform.localPosition = offset_from.localPosition + offset_direction * offset_distance;
+				this.m_info_text.name = OBJECT_NAME;
+				this.m_info_text.alignment = TextAlignmentOptions.TopLeft;
+				this.m_info_text.enableAutoSizing = true;
+				this.m_info_text.enableWordWrapping = false;
+				this.m_info_text.fontSizeMin = this.m_info_text.fontSizeMax = 18;
+				this.m_info_text.gameObject.SetActive(true);
+				this.StartCoroutine(this.update_routine());
+			}
+
+			private IEnumerator update_routine() {
+				for (;;) {
+					Vector3 pos = InteractionPlayerController.Instance.m_Cam.transform.position;
+					this.m_info_text.text = $"X: {pos.x:#0.00}, Y: {pos.y:#0.00}, Z: {pos.z:#0.00}";
+					yield return new WaitForSeconds(0.1f);
+				}
+			}
+		}
+		
+	}
+
 	class Model {
 		[HarmonyPatch(typeof(CGameManager), "Awake")]
 		class HarmonyPatch_CGameManager_Awake {
@@ -122,39 +156,43 @@ public class TestingPlugin : DDPlugin {
 		}
 
 		private static void on_game_data_finish_loaded(CEventPlayer_GameDataFinishLoaded evt) {
-			//List<Customer> customers = (List<Customer>) ReflectionUtils.get_field_value(CustomerManager.Instance, "m_CustomerList");
-			//Customer customer = null;
-			//foreach (Customer _customer in customers) {
-			//	if (!_customer.gameObject.activeSelf) {
-			//		customer = _customer;
-			//		break;
-			//	}
-			//}
+			CGameManager.Instance.gameObject.AddComponent<Debugging.PositionInfo>();
+			
 		}
 
-		/*
-		[HarmonyPatch(typeof(CustomerManager), "Start")]
-		class HarmonyPatch_CustomerManager_Start {
-			private static bool Prefix(CustomerManager __instance, ref int ___m_SpawnedCustomerCount) {
+		private static Texture2D load_texture(string path) {
+			try {
+				Texture2D texture = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, new TextureCreationFlags());
+				texture.LoadImage(File.ReadAllBytes(path));
+				texture.filterMode = FilterMode.Point;
+				texture.wrapMode = TextureWrapMode.Clamp;
+				texture.wrapModeU = TextureWrapMode.Clamp;
+				texture.wrapModeV = TextureWrapMode.Clamp;
+				texture.wrapModeW = TextureWrapMode.Clamp;
+				Material material = new Material(Shader.Find("Standard"));
+				material.mainTexture = texture;
+			} catch (Exception e) {
+				DDPlugin._error_log("** load_texture ERROR - " + e);
+			}
+			return null;
+		}
+
+		[HarmonyPatch(typeof(CustomerManager), "Init")]
+		class HarmonyPatch_CustomerManager_SpawnGameStartCustomer {
+			private static void Postfix(CustomerManager __instance) {
 				try {
-					int customer_count = 0;
-					foreach (Customer customer in Resources.FindObjectsOfTypeAll<Customer>()) {
-						GameObject.Destroy(customer.gameObject);
-						customer_count++;
-					}
-					for (int index = 0; index < customer_count; index++) {
-						Customer customer = GameObject.Instantiate(__instance.m_CustomerFemalePrefab, __instance.m_CustomerParentGrp);
-						customer.name = $"CustomCustomer_{index:D3}";
-						customer.transform.SetSiblingIndex(index);
-					}
-					return true;
+					GameObject testing_parent = new GameObject("Testing_Parent");
+					testing_parent.transform.SetParent(__instance.m_CustomerParentGrp.transform.parent);
+					Customer customer = GameObject.Instantiate(__instance.m_CustomerFemalePrefab, testing_parent.transform);
+					customer.gameObject.SetActive(true);
+					customer.transform.position = new Vector3(12.1f, 1.64f, -5.02f) + Vector3.down * 1.5f;
+					customer.RandomizeCharacterMesh();
+					_ = load_texture("C:/tmp/textures/horde_crest.png");
 				} catch (Exception e) {
-					DDPlugin._error_log("** HarmonyPatch_CustomerManager_AddCustomerPrefab.Postfix ERROR - " + e);
+					DDPlugin._error_log("** HarmonyPatch_CustomerManager_SpawnGameStartCustomer.Postfix ERROR - " + e);
 				}
-				return true;
 			}
 		}
-		*/
 	}
 
 	class Smelliness {
@@ -234,6 +272,29 @@ public class TestingPlugin : DDPlugin {
 	class HarmonyPatch_ {
 		private static void Postfix() {
 			
+		}
+	}
+
+	[HarmonyPatch(typeof(), "")]
+	class HarmonyPatch_ {
+		private static bool Prefix() {
+			try {
+
+			} catch (Exception e) {
+				DDPlugin._error_log("** HarmonyPatch_.Prefix ERROR - " + e);
+			}
+			return true;
+		}
+	}
+
+	[HarmonyPatch(typeof(), "")]
+	class HarmonyPatch_ {
+		private static void Postfix() {
+			try {
+
+			} catch (Exception e) {
+				DDPlugin._error_log("** HarmonyPatch_.Postfix ERROR - " + e);
+			}
 		}
 	}
 	*/
