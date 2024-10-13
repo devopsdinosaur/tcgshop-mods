@@ -13,7 +13,7 @@ public static class PluginInfo {
 	public const string NAME = "quick_scan";
 	public const string SHORT_DESCRIPTION = "Scan all items on the counter with a single click!  Works on employees too!";
 
-	public const string VERSION = "0.0.3";
+	public const string VERSION = "0.0.4";
 
 	public const string AUTHOR = "devopsdinosaur";
 	public const string GAME_TITLE = "TCG Shop Simulator";
@@ -126,9 +126,9 @@ public class QuickScanPlugin : DDPlugin {
 		class HarmonyPatch_SoundManager_PlayAudio {
 			const float MIN_TIME_BETWEEN_SCAN_SOUNDS = 0.5f;
 			private static float m_time_of_last_scan_sound = float.MinValue;
-			private static bool Prefix() {
+			private static bool Prefix(string audioName) {
 				try {
-					if (!Settings.m_enabled.Value) {
+					if (!Settings.m_enabled.Value || audioName != "SFX_CheckoutScan") {
 						return true;
 					}
 					if (Time.time - m_time_of_last_scan_sound < MIN_TIME_BETWEEN_SCAN_SOUNDS) {

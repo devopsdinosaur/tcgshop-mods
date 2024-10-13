@@ -13,25 +13,52 @@ using System.Runtime.InteropServices;
 public abstract class DDPlugin : BaseUnityPlugin {
     protected Dictionary<string, string> plugin_info = null;
     protected static ManualLogSource logger;
+    protected enum LogLevel {
+        None,
+        Error,
+        Warn,
+        Info,
+        Debug
+    }
+    protected static LogLevel m_log_level = LogLevel.Info;
 
     public static void _debug_log(object text) {
-        logger.LogInfo(text);
+        if (m_log_level >= LogLevel.Debug) {
+            logger.LogInfo(text);
+        }
     }
 
     public static void _info_log(object text) {
-        logger.LogInfo(text);
+        if (m_log_level >= LogLevel.Info) {
+            logger.LogInfo(text);
+        }
     }
 
     public static void _warn_log(object text) {
-        logger.LogWarning(text);
+        if (m_log_level >= LogLevel.Warn) {
+            logger.LogWarning(text);
+        }
     }
 
     public static void _error_log(object text) {
-        logger.LogError(text);
+        if (m_log_level >= LogLevel.Error) {
+            logger.LogError(text);
+        }
     }
 
-    public bool is_running_on_dev_box() {
-        return File.Exists(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "nexus", this.plugin_info["guid"], "template.txt")));
+    public string get_nexus_dir() {
+        try {
+            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            foreach (string file in new string[] { "nexus", this.plugin_info["guid"] }) {
+                if (!Directory.Exists(path = Path.Combine(path, file))) {
+                    return null;
+                }
+            }
+            return path;
+        } catch (Exception e) {
+            _error_log("** DDPlugin.get_nexus_dir ERROR - " + e);
+        }
+        return null;
     }
 
     protected void create_nexus_page() {
@@ -39,7 +66,10 @@ public abstract class DDPlugin : BaseUnityPlugin {
             logger.LogWarning("* create_nexus_page WARNING - plugin_info dict must be initialized before calling this method.");
             return;
         }
-        string nexus_dir = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "nexus", this.plugin_info["guid"]));
+        string nexus_dir = this.get_nexus_dir();
+        if (nexus_dir == null) {
+            return;
+        }
         string template_path = Path.Combine(nexus_dir, "template.txt");
         string output_path = Path.Combine(nexus_dir, "generated.txt");
         if (!File.Exists(template_path)) {
@@ -127,7 +157,7 @@ public static class UnityUtils {
 
     public static void list_ancestors(Transform obj, Action<object> log_method) {
         List<string> strings = new List<string>();
-        for (;;) {
+        for (; ; ) {
             if (obj == null) {
                 break;
             }
@@ -167,7 +197,7 @@ public static class UnityUtils {
             add_line($"\"name\": \"{transform.name}\",");
             add_line("\"components\": [");
             tab_count++;
-            lines.Add(string.Join(",\n", transform.GetComponents<Component>().Select(component => 
+            lines.Add(string.Join(",\n", transform.GetComponents<Component>().Select(component =>
                 tabbed_text($"\"{component.GetType().ToString()}\"")))
             );
             tab_count--;
@@ -204,7 +234,7 @@ public static class UnityUtils {
 
 public static class ReflectionUtils {
 
-    public const BindingFlags BINDING_FLAGS_ALL = BindingFlags.Instance | 
+    public const BindingFlags BINDING_FLAGS_ALL = BindingFlags.Instance |
         BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic |
         BindingFlags.FlattenHierarchy | BindingFlags.InvokeMethod | BindingFlags.CreateInstance;
 
@@ -348,14 +378,14 @@ public static class ReflectionUtils {
     }
 
     public static void generate_trace_patcher(
-        Type type, 
-        string path, 
-        string additional_usings = "", 
+        Type type,
+        string path,
+        string additional_usings = "",
         string[] skip_methods = null,
         bool echo_skip_messages = false
     ) {
         if (skip_methods == null) {
-            skip_methods = new string[] {};
+            skip_methods = new string[] { };
         }
         string type_name = type.Name;
         List<string> lines = new List<string>();
@@ -372,7 +402,7 @@ public class TracePatcher_{type_name} {{
     }}
 
     public static Action<TracerParams> callback = null;
-");   
+");
         List<string> field_accessor_names_list = new List<string>();
         foreach (FieldInfo field in type.GetFields(BINDING_FLAGS_ALL)) {
             string field_name = (field.Name.StartsWith("NativeFieldInfoPtr_") ? field.Name.Substring(19) : field.Name);

@@ -10,9 +10,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using TMPro;
-using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
-using System.IO;
 
 public static class PluginInfo {
 
@@ -117,6 +114,21 @@ public class TestingPlugin : DDPlugin {
 	}
 
 	public class Debugging {
+		[HarmonyPatch(typeof(CGameManager), "Awake")]
+		class HarmonyPatch_CGameManager_Awake {
+			private static void Postfix() {
+				CEventManager.AddListener<CEventPlayer_GameDataFinishLoaded>(on_game_data_finish_loaded);
+			}
+		}
+
+		private static void on_game_data_finish_loaded(CEventPlayer_GameDataFinishLoaded evt) {
+			try {
+				CGameManager.Instance.gameObject.AddComponent<Debugging.PositionInfo>();
+			} catch (Exception e) {
+				DDPlugin._error_log("** on_game_data_finish_loaded ERROR - " + e);
+			}
+		}
+
 		public class PositionInfo : MonoBehaviour {
 			private static string OBJECT_NAME = "TestingPlugin_Position_Info_Text";
 			private TextMeshProUGUI m_info_text = null;
@@ -145,54 +157,6 @@ public class TestingPlugin : DDPlugin {
 			}
 		}
 		
-	}
-
-	class Model {
-		[HarmonyPatch(typeof(CGameManager), "Awake")]
-		class HarmonyPatch_CGameManager_Awake {
-			private static void Postfix() {
-				CEventManager.AddListener<CEventPlayer_GameDataFinishLoaded>(on_game_data_finish_loaded);
-			}
-		}
-
-		private static void on_game_data_finish_loaded(CEventPlayer_GameDataFinishLoaded evt) {
-			CGameManager.Instance.gameObject.AddComponent<Debugging.PositionInfo>();
-			
-		}
-
-		private static Texture2D load_texture(string path) {
-			try {
-				Texture2D texture = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, new TextureCreationFlags());
-				texture.LoadImage(File.ReadAllBytes(path));
-				texture.filterMode = FilterMode.Point;
-				texture.wrapMode = TextureWrapMode.Clamp;
-				texture.wrapModeU = TextureWrapMode.Clamp;
-				texture.wrapModeV = TextureWrapMode.Clamp;
-				texture.wrapModeW = TextureWrapMode.Clamp;
-				Material material = new Material(Shader.Find("Standard"));
-				material.mainTexture = texture;
-			} catch (Exception e) {
-				DDPlugin._error_log("** load_texture ERROR - " + e);
-			}
-			return null;
-		}
-
-		[HarmonyPatch(typeof(CustomerManager), "Init")]
-		class HarmonyPatch_CustomerManager_SpawnGameStartCustomer {
-			private static void Postfix(CustomerManager __instance) {
-				try {
-					GameObject testing_parent = new GameObject("Testing_Parent");
-					testing_parent.transform.SetParent(__instance.m_CustomerParentGrp.transform.parent);
-					Customer customer = GameObject.Instantiate(__instance.m_CustomerFemalePrefab, testing_parent.transform);
-					customer.gameObject.SetActive(true);
-					customer.transform.position = new Vector3(12.1f, 1.64f, -5.02f) + Vector3.down * 1.5f;
-					customer.RandomizeCharacterMesh();
-					_ = load_texture("C:/tmp/textures/horde_crest.png");
-				} catch (Exception e) {
-					DDPlugin._error_log("** HarmonyPatch_CustomerManager_SpawnGameStartCustomer.Postfix ERROR - " + e);
-				}
-			}
-		}
 	}
 
 	class Smelliness {
