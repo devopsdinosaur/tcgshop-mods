@@ -40,8 +40,9 @@ public class CustomCustomersPlugin : DDPlugin {
 	private void Awake() {
 		logger = this.Logger;
 		try {
-			Settings.Instance.load(this);
 			this.plugin_info = PluginInfo.to_dict();
+			DDPlugin.m_log_level = (this.get_nexus_dir() != null ? LogLevel.Debug : LogLevel.Info);
+			Settings.Instance.load(this);
 			this.create_nexus_page();
 			this.m_harmony.PatchAll();
 			logger.LogInfo($"{PluginInfo.GUID} v{PluginInfo.VERSION} loaded.");
@@ -76,12 +77,14 @@ public class CustomCustomersPlugin : DDPlugin {
 
 		private static void on_game_data_finish_loaded(CEventPlayer_GameDataFinishLoaded evt) {
 			try {
-				CustomAssetManager.Instance.load_asset_bundle(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "testbundle"));
+				//CustomAssetManager.Instance.load_asset_bundle("decal_test_bundle", Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "decal_test_bundle"));
+				//Application.Quit();
 			} catch (Exception e) {
 				DDPlugin._error_log("** on_game_data_finish_loaded ERROR - " + e);
 			}
 		}
 
+		/*
 		class CustomAssetManager : MonoBehaviour {
 			private static CustomAssetManager m_instance = null;
 			public static CustomAssetManager Instance {
@@ -92,18 +95,26 @@ public class CustomCustomersPlugin : DDPlugin {
 					return m_instance;
 				}
 			}
+			private Dictionary<string, AssetBundle> m_bundles = new Dictionary<string, AssetBundle>();
 			private Dictionary<string, GameObject> m_prefabs = new Dictionary<string, GameObject>();
 
-			public void load_asset_bundle(string path) {
+			public void load_asset_bundle(string key, string path) {
 				try {
+					this.m_bundles[key] = AssetBundle.LoadFromFile(path);
+					DDPlugin._debug_log("** Asset Names: " + string.Join(", ", this.m_bundles[key].GetAllAssetNames()));
+					
+					GameObject obj = GameObject.Instantiate(this.m_bundles[key].LoadAsset<GameObject>("Assets/Prefabs/UnusedSphere.prefab"));
+					Material material = GameObject.Instantiate(this.m_bundles[key].LoadAsset<Material>("Assets/Materials/TestMaterial.mat")); //new Material(Shader.Find("Decal"));
+					DDPlugin._debug_log($"Hello!  {material.shader.name}");
 
 				} catch (Exception e) {
 					DDPlugin._error_log("** CustomAssetManager.load_asset_bundle ERROR - " + e);
 				}
 			}
 		}
+		*/
 
-		private static Material load_material(string path) {
+		private static Material load_material(string path, Shader shader) {
 			try {
 				Texture2D texture = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, new TextureCreationFlags());
 				texture.LoadImage(File.ReadAllBytes(path));
@@ -112,7 +123,7 @@ public class CustomCustomersPlugin : DDPlugin {
 				texture.wrapModeU = TextureWrapMode.Clamp;
 				texture.wrapModeV = TextureWrapMode.Clamp;
 				texture.wrapModeW = TextureWrapMode.Clamp;
-				Material material = new Material(Shader.Find("Standard"));
+				Material material = new Material(shader);
 				material.mainTexture = texture;
 				return material;
 			} catch (Exception e) {
@@ -120,6 +131,8 @@ public class CustomCustomersPlugin : DDPlugin {
 			}
 			return null;
 		}
+
+		public static Projector m_projector = null;
 
 		[HarmonyPatch(typeof(CustomerManager), "Init")]
 		class HarmonyPatch_CustomerManager_SpawnGameStartCustomer {
@@ -131,15 +144,26 @@ public class CustomCustomersPlugin : DDPlugin {
 					customer.gameObject.SetActive(true);
 					customer.transform.position = new Vector3(12.1f, 1.64f, -5.02f) + Vector3.down * 1.5f;
 					customer.RandomizeCharacterMesh();
-					Material material = load_material("C:/tmp/textures/horde_crest.png");
 					Transform shirt_transform = UnityUtils.find_first_descendant(customer.transform, "Upper_Body").GetChild(0);
-					for (int index = 0; index < shirt_transform.childCount; index++) {
-						SkinnedMeshRenderer renderer = shirt_transform.GetChild(index).GetComponent<SkinnedMeshRenderer>();
-						renderer.material = material;
-					}
+					//AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "decal_projector_bundle"));
+					//Shader decal_shader = bundle.LoadAsset<Material>("Assets/Materials/Decal.mat").shader;
+					//Material material = load_material("C:/tmp/textures/horde_crest.png", decal_shader);
+					//GameObject projector_object = GameObject.Instantiate(bundle.LoadAsset<GameObject>("Assets/Prefabs/Decal_Projector.prefab"));
+					//foreach (Component component in projector_object.GetComponents<Component>()) {
+					//	DDPlugin._debug_log(component.GetType());
+					//}
+
 				} catch (Exception e) {
 					DDPlugin._error_log("** HarmonyPatch_CustomerManager_SpawnGameStartCustomer.Postfix ERROR - " + e);
 				}
+			}
+		}
+
+		[HarmonyPatch(typeof(InteractionPlayerController), "Update")]
+		class HarmonyPatch_InteractionPlayerController_Update {
+			private static void Postfix() {
+				//m_projector.transform.position = InteractionPlayerController.Instance.m_Cam.transform.position;
+				//m_projector.transform.rotation = InteractionPlayerController.Instance.m_Cam.transform.rotation;
 			}
 		}
 	}

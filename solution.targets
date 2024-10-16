@@ -3,6 +3,7 @@
   <PropertyGroup>
     <Author>devopsdinosaur</Author>
     <GameName>tcgshop</GameName>
+    <GameFolder>Card Shop Simulator</GameFolder>
     <AssemblyName>$(Author).$(GameName).$(MSBuildProjectName)</AssemblyName>
     <RootNamespace>$(MSBuildProjectName)</RootNamespace>
     <TargetFramework>net480</TargetFramework>
@@ -33,8 +34,8 @@
   <!-- Manual overrides -->
   <PropertyGroup>
     <BepInExPath>$(GamePath)\BepInEx</BepInExPath>
-    <ManagedDataPath>$(GamePath)\Card Shop Simulator_Data\Managed</ManagedDataPath>
-    <UnityPath>$(GamePath)\Card Shop Simulator_Data\Managed</UnityPath>
+    <ManagedDataPath>$(GamePath)\$(GameFolder)_Data\Managed</ManagedDataPath>
+    <UnityPath>$(GamePath)\$(GameFolder)_Data\Managed</UnityPath>
   </PropertyGroup>
 
   <!-- Set start action -->
