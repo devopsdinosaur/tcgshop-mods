@@ -38,8 +38,9 @@ public class TimeManagementPlugin : DDPlugin {
 	private void Awake() {
 		logger = this.Logger;
 		try {
-			Settings.Instance.load(this);
 			this.plugin_info = PluginInfo.to_dict();
+			DDPlugin.m_log_level = (this.get_nexus_dir() != null ? LogLevel.Debug : LogLevel.Info);
+			Settings.Instance.load(this);
 			this.create_nexus_page();
 			this.m_harmony.PatchAll();
 			logger.LogInfo($"{PluginInfo.GUID} v{PluginInfo.VERSION} loaded.");

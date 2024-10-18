@@ -32,6 +32,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "big_spender", "big_spender\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "custom_assets", "custom_assets\custom_assets.csproj", "{AAD68409-7916-4264-84C4-0728478B93B9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "better_reviews", "better_reviews\better_reviews.csproj", "{4AF87C9E-7175-40BA-8E16-E3B68925D3BD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,6 +72,10 @@ Global
 		{AAD68409-7916-4264-84C4-0728478B93B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AAD68409-7916-4264-84C4-0728478B93B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AAD68409-7916-4264-84C4-0728478B93B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AF87C9E-7175-40BA-8E16-E3B68925D3BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AF87C9E-7175-40BA-8E16-E3B68925D3BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AF87C9E-7175-40BA-8E16-E3B68925D3BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AF87C9E-7175-40BA-8E16-E3B68925D3BD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
