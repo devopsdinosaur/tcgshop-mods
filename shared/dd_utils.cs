@@ -13,14 +13,33 @@ using System.Runtime.InteropServices;
 public abstract class DDPlugin : BaseUnityPlugin {
     protected Dictionary<string, string> plugin_info = null;
     protected static ManualLogSource logger;
-    protected enum LogLevel {
+    public enum LogLevel {
         None,
         Error,
         Warn,
         Info,
         Debug
     }
+    private static readonly Dictionary<string, LogLevel> LOG_LEVEL_STRING_KEY_MAP = new Dictionary<string, LogLevel>() {
+        {"none", LogLevel.None},
+        {"error", LogLevel.Error},
+        {"warn", LogLevel.Warn},
+        {"info", LogLevel.Info},
+        {"debug", LogLevel.Debug},
+    };
     protected static LogLevel m_log_level = LogLevel.Info;
+
+    public static LogLevel set_log_level(LogLevel level) {
+        _info_log($"Setting log level to {level.ToString().ToUpper()}.");
+        return (m_log_level = level);
+    }
+
+    public static LogLevel set_log_level(string level_string) {
+        if (LOG_LEVEL_STRING_KEY_MAP.TryGetValue(level_string.ToLower(), out LogLevel value)) {
+            return set_log_level(value);
+        }
+        return set_log_level(LogLevel.None);
+    }
 
     public static void _debug_log(object text) {
         if (m_log_level >= LogLevel.Debug) {
