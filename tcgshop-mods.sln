@@ -30,8 +30,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mind_control", "mind_contro
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "big_spender", "big_spender\big_spender.csproj", "{D378D12D-2F40-4F3F-8524-B0C02A5ACE1F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "custom_assets", "custom_assets\custom_assets.csproj", "{AAD68409-7916-4264-84C4-0728478B93B9}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "better_reviews", "better_reviews\better_reviews.csproj", "{4AF87C9E-7175-40BA-8E16-E3B68925D3BD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "nerd_shirts", "nerd_shirts\nerd_shirts.csproj", "{7AAB20F9-5804-41D0-8FBF-ADF6C9E7E4C8}"
@@ -70,10 +68,6 @@ Global
 		{D378D12D-2F40-4F3F-8524-B0C02A5ACE1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D378D12D-2F40-4F3F-8524-B0C02A5ACE1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D378D12D-2F40-4F3F-8524-B0C02A5ACE1F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AAD68409-7916-4264-84C4-0728478B93B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AAD68409-7916-4264-84C4-0728478B93B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AAD68409-7916-4264-84C4-0728478B93B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AAD68409-7916-4264-84C4-0728478B93B9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4AF87C9E-7175-40BA-8E16-E3B68925D3BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4AF87C9E-7175-40BA-8E16-E3B68925D3BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4AF87C9E-7175-40BA-8E16-E3B68925D3BD}.Release|Any CPU.ActiveCfg = Release|Any CPU

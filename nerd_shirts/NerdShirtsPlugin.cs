@@ -114,25 +114,31 @@ public class CustomCustomersPlugin : DDPlugin {
 					customer.transform.position = new Vector3(12.1f, 1.64f, -5.02f) + Vector3.down * 1.5f;
 					customer.RandomizeCharacterMesh();
 					Transform shirt_transform = UnityUtils.find_first_descendant(customer.transform, "Upper_Body").GetChild(0);
-					//AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "decal_projector_bundle"));
-					//Shader decal_shader = bundle.LoadAsset<Material>("Assets/Materials/Decal.mat").shader;
-					//Material material = load_material("C:/tmp/textures/horde_crest.png", decal_shader);
-					//GameObject projector_object = GameObject.Instantiate(bundle.LoadAsset<GameObject>("Assets/Prefabs/Decal_Projector.prefab"));
-					//foreach (Component component in projector_object.GetComponents<Component>()) {
-					//	DDPlugin._debug_log(component.GetType());
-					//}
-					GameObject obj = new GameObject("Customer_Decal_Projector");
-					obj.transform.SetParent(shirt_transform);
-					obj.transform.position = shirt_transform.position + Vector3.forward * 1.0f;
-					obj.transform.localScale = new Vector3(10, 10, 10);
-					obj.transform.LookAt(shirt_transform.position);
-					EasyDecal projector = obj.AddComponent<EasyDecal>();
-					projector.DecalMaterial = load_material("C:/tmp/textures/thundercats.png", Shader.Find("Standard"));
+					AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "decal_projector_bundle"));
+
+					foreach (string name in bundle.GetAllAssetNames()) {
+						DDPlugin._info_log(name);
+					}
+					GameObject projector_object = GameObject.Instantiate(
+						bundle.LoadAsset<GameObject>("assets/bundles/decal_projector_bundle/prefabs/basic_decal_projector.prefab"), 
+						shirt_transform
+					);
+					// look at CharacterCustomization to figure out positions/constraints
+					projector_object.transform.localPosition = shirt_transform.forward * -1f;
+					projector_object.transform.LookAt(shirt_transform.position);
+					projector_object.transform.localScale *= 2f;
+					//GameObject obj = new GameObject("Customer_Decal_Projector");
+					//obj.transform.SetParent(shirt_transform);
+					//obj.transform.position = shirt_transform.position + Vector3.forward * 1.0f;
+					//obj.transform.localScale = new Vector3(10, 10, 10);
+					//obj.transform.LookAt(shirt_transform.position);
+					//EasyDecal projector = obj.AddComponent<EasyDecal>();
+					//projector.DecalMaterial = load_material("C:/tmp/textures/thundercats.png", Shader.Find("Standard"));
 					//projector.Mask = LayerMask.NameToLayer() || 
 					//projector.BakeOnAwake = true;
-					projector.Technique = ProjectionTechnique.Box;
+					//projector.Technique = ProjectionTechnique.Box;
 
-					projector.gameObject.SetActive(true);
+					//projector.gameObject.SetActive(true);
 				} catch (Exception e) {
 					DDPlugin._error_log("** HarmonyPatch_CustomerManager_SpawnGameStartCustomer.Postfix ERROR - " + e);
 				}
