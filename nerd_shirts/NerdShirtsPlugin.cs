@@ -44,6 +44,7 @@ public class CustomCustomersPlugin : DDPlugin {
 			this.plugin_info = PluginInfo.to_dict();
 			Settings.Instance.load(this);
 			DDPlugin.set_log_level(Settings.m_log_level.Value);
+			EasyDecal _ = new EasyDecal();
 			this.create_nexus_page();
 			this.m_harmony.PatchAll();
 			logger.LogInfo($"{PluginInfo.GUID} v{PluginInfo.VERSION} loaded.");
@@ -103,6 +104,59 @@ public class CustomCustomersPlugin : DDPlugin {
 			return null;
 		}
 
+		public class CustomerDecalProjector : MonoBehaviour {
+			private const bool SHOW_ARROW = true;
+
+			private static AssetBundle m_asset_bundle = null;
+			private static GameObject m_prefab_arrow;
+			private static Material m_default_decal;
+			private static Shader m_decal_shader;
+
+			private Customer m_customer;
+			private Transform m_parent;
+			private Transform m_main;
+			private Transform m_arrow;
+			private EasyDecal m_decal;
+
+			private void Awake() {
+				try {
+					this.m_customer = this.gameObject.GetComponent<Customer>();
+					Vector3 customer_size = this.m_customer.transform.Find("DebugCube").GetComponent<MeshRenderer>().bounds.size;
+					if (m_asset_bundle == null) {
+						m_asset_bundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "decal_projector_bundle"));
+						m_prefab_arrow = m_asset_bundle.LoadAsset<GameObject>("assets/bundles/decal_projector_bundle/prefabs/arrow.prefab");
+						m_default_decal = m_asset_bundle.LoadAsset<Material>("assets/bundles/decal_projector_bundle/materials/test_decal.mat");
+						m_decal_shader = m_default_decal.shader;
+					}
+					this.m_main = new GameObject("Customer_Decal_Projector").transform;
+					this.m_main.parent = this.m_parent = this.m_customer.transform;
+					float scale = 0.25f;
+					this.m_main.localScale = new Vector3(scale, scale, scale);
+					this.m_main.localPosition = this.m_parent.forward * scale * 0.95f;
+					this.m_main.position += this.m_main.transform.up * (customer_size.y * 0.66f);
+					if (SHOW_ARROW) {
+						this.m_arrow = GameObject.Instantiate(m_prefab_arrow, this.m_main).transform;
+						this.m_arrow.localPosition = Vector3.zero;
+						this.m_arrow.localRotation = new Quaternion(0, 0, 0, 0);
+					}
+					this.m_main.LookAt(this.m_parent);
+					m_decal = this.m_main.gameObject.AddComponent<EasyDecal>();
+					
+					m_decal.DecalMaterial = load_material("C:/tmp/textures/thundercats.png", m_decal_shader);
+					//projector.Mask = LayerMask.NameToLayer() || 
+					//projector.BakeOnAwake = true;
+
+					m_decal.Technique = ProjectionTechnique.Box;
+					m_decal.OnlyColliders = false;
+					this.m_main.gameObject.SetActive(true);
+				} catch (Exception e) {
+					DDPlugin._error_log("** CustomerDecalProjector.Awake ERROR - " + e);
+				}
+			}
+
+
+		}
+
 		[HarmonyPatch(typeof(CustomerManager), "Init")]
 		class HarmonyPatch_CustomerManager_SpawnGameStartCustomer {
 			private static void Postfix(CustomerManager __instance) {
@@ -111,22 +165,24 @@ public class CustomCustomersPlugin : DDPlugin {
 					testing_parent.transform.SetParent(__instance.m_CustomerParentGrp.transform.parent);
 					Customer customer = GameObject.Instantiate(__instance.m_CustomerFemalePrefab, testing_parent.transform);
 					customer.gameObject.SetActive(true);
-					customer.transform.position = new Vector3(12.1f, 1.64f, -5.02f) + Vector3.down * 1.5f;
+					customer.transform.position = new Vector3(12.1f, 0f, -5.02f);
 					customer.RandomizeCharacterMesh();
-					Transform shirt_transform = UnityUtils.find_first_descendant(customer.transform, "Upper_Body").GetChild(0);
-					AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "decal_projector_bundle"));
+					customer.gameObject.AddComponent<CustomerDecalProjector>();
+					
 
-					foreach (string name in bundle.GetAllAssetNames()) {
-						DDPlugin._info_log(name);
-					}
-					GameObject projector_object = GameObject.Instantiate(
-						bundle.LoadAsset<GameObject>("assets/bundles/decal_projector_bundle/prefabs/basic_decal_projector.prefab"), 
-						shirt_transform
-					);
-					// look at CharacterCustomization to figure out positions/constraints
-					projector_object.transform.localPosition = shirt_transform.forward * -1f;
-					projector_object.transform.LookAt(shirt_transform.position);
-					projector_object.transform.localScale *= 2f;
+
+					//AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "decal_projector_bundle"));
+					//GameObject projector_object = GameObject.Instantiate(
+					//	bundle.LoadAsset<GameObject>("assets/bundles/decal_projector_bundle/prefabs/basic_decal_projector.prefab"), 
+					//	shirt_transform
+					//);
+					//projector_object.transform.localPosition = shirt_transform.forward * -1f;
+					//projector_object.transform.LookAt(shirt_transform.position);
+					//projector_object.transform.localScale *= 2f;
+					//Transform debug_cube = customer.transform.Find("DebugCube");
+					//MeshRenderer cube_renderer = debug_cube.GetComponent<MeshRenderer>();
+					//projector_object.transform.position += projector_object.transform.up * (cube_renderer.bounds.size.y * 0.66f);
+
 					//GameObject obj = new GameObject("Customer_Decal_Projector");
 					//obj.transform.SetParent(shirt_transform);
 					//obj.transform.position = shirt_transform.position + Vector3.forward * 1.0f;
