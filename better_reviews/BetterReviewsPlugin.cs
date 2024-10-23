@@ -31,13 +31,13 @@ public static class PluginInfo {
 }
 
 [BepInPlugin(PluginInfo.GUID, PluginInfo.TITLE, PluginInfo.VERSION)]
-public class CustomCustomersPlugin : DDPlugin {
+public class BetterReviewsPlugin : DDPlugin {
 	private Harmony m_harmony = new Harmony(PluginInfo.GUID);
 
 	private void Awake() {
 		logger = this.Logger;
 		try {
-			this.plugin_info = PluginInfo.to_dict();
+			this.m_plugin_info = PluginInfo.to_dict();
 			DDPlugin.m_log_level = (this.get_nexus_dir() != null ? LogLevel.Debug : LogLevel.Info);
 			Settings.Instance.load(this);
 			this.create_nexus_page();

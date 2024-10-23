@@ -38,7 +38,7 @@ public class BigSpenderPlugin : DDPlugin {
 		logger = this.Logger;
 		try {
 			Settings.Instance.load(this);
-			this.plugin_info = PluginInfo.to_dict();
+			this.m_plugin_info = PluginInfo.to_dict();
 			this.create_nexus_page();
 			this.m_harmony.PatchAll();
 			logger.LogInfo($"{PluginInfo.GUID} v{PluginInfo.VERSION} loaded.");

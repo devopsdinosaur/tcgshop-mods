@@ -11,7 +11,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 
 public abstract class DDPlugin : BaseUnityPlugin {
-    protected Dictionary<string, string> plugin_info = null;
+    public Dictionary<string, string> m_plugin_info = null;
     protected static ManualLogSource logger;
     public enum LogLevel {
         None,
@@ -68,7 +68,7 @@ public abstract class DDPlugin : BaseUnityPlugin {
     public string get_nexus_dir() {
         try {
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            foreach (string file in new string[] { "nexus", this.plugin_info["guid"] }) {
+            foreach (string file in new string[] { "nexus", this.m_plugin_info["guid"] }) {
                 if (!Directory.Exists(path = Path.Combine(path, file))) {
                     return null;
                 }
@@ -81,8 +81,8 @@ public abstract class DDPlugin : BaseUnityPlugin {
     }
 
     protected void create_nexus_page() {
-        if (plugin_info == null) {
-            logger.LogWarning("* create_nexus_page WARNING - plugin_info dict must be initialized before calling this method.");
+        if (m_plugin_info == null) {
+            logger.LogWarning("* create_nexus_page WARNING - m_plugin_info dict must be initialized before calling this method.");
             return;
         }
         string nexus_dir = this.get_nexus_dir();
@@ -118,8 +118,8 @@ public abstract class DDPlugin : BaseUnityPlugin {
             }
             lines += "[/list]\n";
         }
-        this.plugin_info["config_options"] = lines;
-        foreach (KeyValuePair<string, string> kvp in this.plugin_info) {
+        this.m_plugin_info["config_options"] = lines;
+        foreach (KeyValuePair<string, string> kvp in this.m_plugin_info) {
             template_data = template_data.Replace("[[" + kvp.Key + "]]", kvp.Value);
         }
         File.WriteAllText(output_path, template_data);

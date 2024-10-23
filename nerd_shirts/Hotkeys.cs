@@ -12,11 +12,13 @@ class Hotkeys {
         }
     }
     private const int HOTKEY_MODIFIER = 0;
+    private const int HOTKEY_DUMP_TEXTURES = 1;
     private static Dictionary<int, List<KeyCode>> m_hotkeys = null;
 
     public static void load() {
         m_hotkeys = new Dictionary<int, List<KeyCode>>();
-        set_hotkey("", HOTKEY_MODIFIER);
+        set_hotkey(Settings.m_hotkey_modifier.Value, HOTKEY_MODIFIER);
+        set_hotkey(Settings.m_hotkey_dump_textures.Value, HOTKEY_DUMP_TEXTURES);
     }
 
     private static void set_hotkey(string keys_string, int key_index) {
@@ -55,7 +57,9 @@ class Hotkeys {
             if (!is_modifier_hotkey_down()) {
                 return;
             }
-
+            if (is_hotkey_down(HOTKEY_DUMP_TEXTURES)) {
+                NerdShirtsPlugin.CustomMaterialHandler.dump_textures();
+            }
         }
     }
 }

@@ -223,6 +223,28 @@ public class TestingPlugin : DDPlugin {
 		}
 	}
 
+	class Misc {
+		/*
+		private static Material load_material(string path, Shader shader) {
+			try {
+				Texture2D texture = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, new TextureCreationFlags());
+				texture.LoadImage(File.ReadAllBytes(path));
+				texture.filterMode = FilterMode.Point;
+				texture.wrapMode = TextureWrapMode.Clamp;
+				texture.wrapModeU = TextureWrapMode.Clamp;
+				texture.wrapModeV = TextureWrapMode.Clamp;
+				texture.wrapModeW = TextureWrapMode.Clamp;
+				Material material = new Material(shader);
+				material.mainTexture = texture;
+				return material;
+			} catch (Exception e) {
+				DDPlugin._error_log("** load_texture ERROR - " + e);
+			}
+			return null;
+		}
+		*/
+	}
+
 	/*
 	[HarmonyPatch(typeof(), "")]
 	class HarmonyPatch_ {
