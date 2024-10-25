@@ -58,7 +58,7 @@ class Hotkeys {
                 return;
             }
             if (is_hotkey_down(HOTKEY_DUMP_TEXTURES)) {
-                NerdShirtsPlugin.CustomMaterialHandler.dump_textures();
+                NerdShirtsPlugin.CustomMaterialHandler.Instance.dump_textures();
             }
         }
     }
