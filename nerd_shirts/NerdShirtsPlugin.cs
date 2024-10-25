@@ -134,7 +134,12 @@ public class NerdShirtsPlugin : DDPlugin {
 						return false;
 					}
 					try {
-
+						string link_key = File.ReadAllText(path);
+						if (!this.m_textures.TryGetValue(link_key, out CustomTexture link_texture)) {
+							DDPlugin._warn_log($"* CustomTextureDict.add_item WARNING - invalid texture link to '{link_key}' in '{path}'; linked texture file is not present in loaded database.");
+							return false;
+						}
+						this.m_textures[key] = link_texture;
 					} catch (Exception e) {
 						DDPlugin._info_log($"* CustomTextureDict.add_item WARNING - exception occured when reading '{path}'; ignored.  Exception: " + e);
 						return false;
@@ -477,10 +482,7 @@ public class NerdShirtsPlugin : DDPlugin {
 
 		private static void on_game_data_finish_loaded(CEventPlayer_GameDataFinishLoaded evt) {
 			try {
-				//CustomAssetManager.Instance.load_asset_bundle("decal_test_bundle", Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "decal_test_bundle"));
-				//Application.Quit();
-				DDPlugin._debug_log($"{CustomerManager.Instance.m_CustomerPrefab.m_CharacterCustom.Presets.Presets.Count}");
-				DDPlugin._debug_log($"{CustomerManager.Instance.m_CustomerFemalePrefab.m_CharacterCustom.Presets.Presets.Count}");
+				
 			} catch (Exception e) {
 				DDPlugin._error_log("** on_game_data_finish_loaded ERROR - " + e);
 			}
@@ -494,8 +496,8 @@ public class NerdShirtsPlugin : DDPlugin {
 				if (!characterData.CharacterPrefab.StartsWith("Male")) {
 					return true;
 				}
-				//characterData.ApparelNames = new List<string>() {"Polo_Shirt_01", "Cargo_Pants", "Boots_01", "None"};
-				//characterData.ApparelMaterials = new List<int>() {1, 0, 0, 0};
+				characterData.ApparelNames = new List<string>() {"Polo_Shirt_01", "Cargo_Pants", "Boots_01", "None"};
+				characterData.ApparelMaterials = new List<int>() {1, 0, 0, 0};
 				//DDPlugin._info_log(characterData.CharacterPrefab);
 				//DDPlugin._info_log(String.Join(", ", characterData.ApparelNames));
 				//DDPlugin._info_log(String.Join(", ", characterData.ApparelMaterials));
