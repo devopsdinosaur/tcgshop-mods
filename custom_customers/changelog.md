@@ -1,4 +1,9 @@
-﻿# 0.0.7
+﻿# 0.0.8
+
+## Bug Fixes
+- Fixed issue causing credit machine to populate the wrong number for non-USD
+
+# 0.0.7
 
 ## Features
 - Added option to set the percentage of spawned customers that are female

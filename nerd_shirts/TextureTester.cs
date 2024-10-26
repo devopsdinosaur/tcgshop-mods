@@ -14,12 +14,7 @@ class TextureTester : MonoBehaviour {
     private GameObject m_parent = null;
     private Coroutine m_spawn_routine = null;
 
-    private void Awake() {
-        m_instance = this;
-        this.m_parent = new GameObject("NerdShirts_TextureTester_Parent");
-    }
-
-    public IEnumerator coroutine_spawn_all_presets() {
+    private IEnumerator coroutine_spawn_all_presets() {
         const float START_X = 8.5f;
         const float START_Z = 0f;
         const float INC_X = 1.5f;
@@ -50,8 +45,26 @@ class TextureTester : MonoBehaviour {
     }
 
     public void destroy_all_spawns() {
+        if (this.m_spawn_routine != null) {
+            return;
+        }
         foreach (Transform transform in this.m_parent.transform) {
             GameObject.Destroy(transform);
         }
+    }
+
+    public static void initialize() {
+        if (m_instance != null) {
+            return;
+        }
+        m_instance = CGameManager.Instance.gameObject.AddComponent<TextureTester>();
+        m_instance.m_parent = new GameObject("NerdShirts_TextureTester_Parent");
+    }
+
+    public void spawn_all_presets() {
+        if (this.m_spawn_routine != null) {
+            return;
+        }
+        this.m_spawn_routine = this.StartCoroutine(this.coroutine_spawn_all_presets());
     }
 }

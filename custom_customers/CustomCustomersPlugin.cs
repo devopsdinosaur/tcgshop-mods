@@ -13,7 +13,7 @@ public static class PluginInfo {
 	public const string NAME = "custom_customers";
 	public const string SHORT_DESCRIPTION = "Configurable tweaks (walk speed, exact change, spending money, etc) to customers to improve quality of life for your shop!";
 
-	public const string VERSION = "0.0.7";
+	public const string VERSION = "0.0.8";
 
 	public const string AUTHOR = "devopsdinosaur";
 	public const string GAME_TITLE = "TCG Shop Simulator";
@@ -97,7 +97,7 @@ public class CustomCustomersPlugin : DDPlugin {
 					return;
 				}
                 ___m_CurrentNumberValue = (float) ReflectionUtils.get_field_value(___m_CashierCounter, "m_TotalScannedItemCost");
-				___m_TotalPriceText.text = GameInstance.GetPriceString(___m_CurrentNumberValue / GameInstance.GetCurrencyConversionRate());
+				___m_TotalPriceText.text = ___m_CurrentNumberValue.ToString();
             }
         }
     }

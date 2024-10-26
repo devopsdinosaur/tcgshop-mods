@@ -52,79 +52,15 @@ public class NerdShirtsPlugin : DDPlugin {
 		class HarmonyPatch_CGameManager_Awake {
 			private static void Postfix(CGameManager __instance) {
 				Hotkeys.load();
-            }
+				CustomMaterialHandler.initialize();
+				TextureTester.initialize();
+			}
 		}
 
 		[HarmonyPatch(typeof(CGameManager), "Update")]
 		class HarmonyPatch_CGameManager_Update {
 			private static void Postfix(CGameManager __instance) {
 				Hotkeys.Updaters.keypress_update();
-			}
-		}
-	}
-
-	class Model {
-		[HarmonyPatch(typeof(CGameManager), "Awake")]
-		class HarmonyPatch_CGameManager_Awake {
-			private static void Postfix() {
-				CGameManager.Instance.gameObject.AddComponent<CustomMaterialHandler>();
-                CGameManager.Instance.gameObject.AddComponent<TextureTester>();
-			}
-		}
-
-		[HarmonyPatch(typeof(CustomerManager), "Init")]
-		class HarmonyPatch_CustomerManager_SpawnGameStartCustomer {
-			private static void Postfix(CustomerManager __instance) {
-				try {
-					/*/
-					GameObject testing_parent = new GameObject("Testing_Parent");
-					testing_parent.transform.SetParent(__instance.m_CustomerParentGrp.transform.parent);
-					for (int counter = 0; counter < 10; counter++) {
-						Customer customer = GameObject.Instantiate(__instance.m_CustomerPrefab, testing_parent.transform);
-						customer.gameObject.SetActive(true);
-						customer.transform.position = new Vector3(12.1f, 0f, -5.02f - counter * 2f);
-						//customer.RandomizeCharacterMesh();
-						customer.m_CharacterCustom.CharacterName = $"Male{counter}";
-						customer.m_CharacterCustom.Initialize();
-						//customer.gameObject.AddComponent<CustomerDecalProjector>();
-					}
-					*/
-
-					//AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "decal_projector_bundle"));
-					//GameObject projector_object = GameObject.Instantiate(
-					//	bundle.LoadAsset<GameObject>("assets/bundles/decal_projector_bundle/prefabs/basic_decal_projector.prefab"), 
-					//	shirt_transform
-					//);
-					//projector_object.transform.localPosition = shirt_transform.forward * -1f;
-					//projector_object.transform.LookAt(shirt_transform.position);
-					//projector_object.transform.localScale *= 2f;
-					//Transform debug_cube = customer.transform.Find("DebugCube");
-					//MeshRenderer cube_renderer = debug_cube.GetComponent<MeshRenderer>();
-					//projector_object.transform.position += projector_object.transform.up * (cube_renderer.bounds.size.y * 0.66f);
-
-					//GameObject obj = new GameObject("Customer_Decal_Projector");
-					//obj.transform.SetParent(shirt_transform);
-					//obj.transform.position = shirt_transform.position + Vector3.forward * 1.0f;
-					//obj.transform.localScale = new Vector3(10, 10, 10);
-					//obj.transform.LookAt(shirt_transform.position);
-					//EasyDecal projector = obj.AddComponent<EasyDecal>();
-					//projector.DecalMaterial = load_material("C:/tmp/textures/thundercats.png", Shader.Find("Standard"));
-					//projector.Mask = LayerMask.NameToLayer() || 
-					//projector.BakeOnAwake = true;
-					//projector.Technique = ProjectionTechnique.Box;
-
-					//projector.gameObject.SetActive(true);
-				} catch (Exception e) {
-					DDPlugin._error_log("** HarmonyPatch_CustomerManager_SpawnGameStartCustomer.Postfix ERROR - " + e);
-				}
-			}
-		}
-
-		[HarmonyPatch(typeof(InteractionPlayerController), "Update")]
-		class HarmonyPatch_InteractionPlayerController_Update {
-			private static void Postfix() {
-				//m_projector.transform.position = InteractionPlayerController.Instance.m_Cam.transform.position;
-				//m_projector.transform.rotation = InteractionPlayerController.Instance.m_Cam.transform.rotation;
 			}
 		}
 	}
