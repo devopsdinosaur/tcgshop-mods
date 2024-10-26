@@ -13,12 +13,16 @@ class Hotkeys {
     }
     private const int HOTKEY_MODIFIER = 0;
     private const int HOTKEY_DUMP_TEXTURES = 1;
+    private const int HOTKEY_SPAWN_ALL_PRESETS = 2;
+    private const int HOTKEY_DESTROY_ALL_SPAWNS = 3;
     private static Dictionary<int, List<KeyCode>> m_hotkeys = null;
 
     public static void load() {
         m_hotkeys = new Dictionary<int, List<KeyCode>>();
         set_hotkey(Settings.m_hotkey_modifier.Value, HOTKEY_MODIFIER);
         set_hotkey(Settings.m_hotkey_dump_textures.Value, HOTKEY_DUMP_TEXTURES);
+        set_hotkey(Settings.m_hotkey_spawn_all_presets.Value, HOTKEY_SPAWN_ALL_PRESETS);
+        set_hotkey(Settings.m_hotkey_destroy_all_spawns.Value, HOTKEY_DESTROY_ALL_SPAWNS);
     }
 
     private static void set_hotkey(string keys_string, int key_index) {
@@ -59,6 +63,11 @@ class Hotkeys {
             }
             if (is_hotkey_down(HOTKEY_DUMP_TEXTURES)) {
                 TextureDumper.dump_textures();
+            } else if (is_hotkey_down(HOTKEY_SPAWN_ALL_PRESETS)) {
+                TextureTester.Instance.spawn_all_presets();
+            } else if (is_hotkey_down(HOTKEY_DESTROY_ALL_SPAWNS)) {
+                DDPlugin._info_log("2");
+                TextureTester.Instance.destroy_all_spawns();
             }
         }
     }

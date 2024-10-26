@@ -21,7 +21,7 @@ class TextureDumper : MonoBehaviour {
     private List<string> m_already_written = new List<string>();
 
     public static void dump_textures() {
-        if (!Settings.m_enabled.Value || !Settings.m_test_enabled.Value || m_instance != null) {
+        if (!Settings.m_enabled.Value || !Settings.m_test_mode_enabled.Value || m_instance != null) {
             return;
         }
         m_instance = CGameManager.Instance.gameObject.AddComponent<TextureDumper>();

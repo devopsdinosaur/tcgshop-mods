@@ -52,6 +52,7 @@ public class NerdShirtsPlugin : DDPlugin {
 		class HarmonyPatch_CGameManager_Awake {
 			private static void Postfix(CGameManager __instance) {
 				Hotkeys.load();
+				ApparelManager.initialize();
 				CustomMaterialHandler.initialize();
 				TextureTester.initialize();
 			}

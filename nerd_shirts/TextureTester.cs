@@ -25,6 +25,9 @@ class TextureTester : MonoBehaviour {
         float y = 0f;
         float z = START_Z;
         int column_counter = 0;
+        if (this.m_parent == null) {
+            this.m_parent = new GameObject("NerdShirts_TextureTester_Parent");
+        }
         foreach (Customer prefab in new Customer[] { CustomerManager.Instance.m_CustomerFemalePrefab, CustomerManager.Instance.m_CustomerPrefab }) {
             foreach (CC_CharacterData character_data in prefab.m_CharacterCustom.Presets.Presets) {
                 Customer customer = GameObject.Instantiate(prefab, this.m_parent.transform);
@@ -45,12 +48,10 @@ class TextureTester : MonoBehaviour {
     }
 
     public void destroy_all_spawns() {
-        if (this.m_spawn_routine != null) {
+        if (!Settings.m_enabled.Value || !Settings.m_test_mode_enabled.Value || this.m_parent == null || this.m_spawn_routine != null) {
             return;
         }
-        foreach (Transform transform in this.m_parent.transform) {
-            GameObject.Destroy(transform);
-        }
+        GameObject.Destroy(this.m_parent);
     }
 
     public static void initialize() {
@@ -58,11 +59,10 @@ class TextureTester : MonoBehaviour {
             return;
         }
         m_instance = CGameManager.Instance.gameObject.AddComponent<TextureTester>();
-        m_instance.m_parent = new GameObject("NerdShirts_TextureTester_Parent");
     }
 
     public void spawn_all_presets() {
-        if (this.m_spawn_routine != null) {
+        if (!Settings.m_enabled.Value || !Settings.m_test_mode_enabled.Value || this.m_spawn_routine != null) {
             return;
         }
         this.m_spawn_routine = this.StartCoroutine(this.coroutine_spawn_all_presets());

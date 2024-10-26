@@ -7,35 +7,6 @@ using UnityEngine;
 using CC;
 
 public class CustomMaterialHandler : MonoBehaviour {
-
-    private class PatchedKeyList {
-        public struct PatchedKey {
-            public int m_instance_id;
-            public string m_name;
-        }
-        private List<PatchedKey> m_patched_keys = new List<PatchedKey>();
-
-        public void add_patch(int instance_id, string name) {
-            this.m_patched_keys.Add(new PatchedKey() {
-                m_instance_id = instance_id,
-                m_name = name
-            });
-        }
-
-        public bool is_patched(int instance_id, string name) {
-            foreach (PatchedKey key in this.m_patched_keys) {
-                if (key.m_instance_id == instance_id && key.m_name == name) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public void reset() {
-            this.m_patched_keys.Clear();
-        }
-    }
-
     private static CustomMaterialHandler m_instance = null;
     public static CustomMaterialHandler Instance {
         get {
@@ -43,10 +14,7 @@ public class CustomMaterialHandler : MonoBehaviour {
         }
     }
     private CustomTextureDict m_textures = null;
-    private Dictionary<string, List<string>> m_apparel_names = null;
-    private string[] m_force_wear = null;
-    private PatchedKeyList m_patched_keys = new PatchedKeyList();
-
+    
     private bool harmony_patch_CharacterCustomization_setApparel(CharacterCustomization __instance, int selection, int slot, int materialSelection) {
         return true;
     }
@@ -70,13 +38,13 @@ public class CustomMaterialHandler : MonoBehaviour {
             private static bool Prefix(CharacterCustomization __instance, CC_CharacterData characterData) {
                 // Polo_Shirt_01, Cargo_Pants, Boots_01, None
                 // 1, 0, 0, 0
-                if (!characterData.CharacterPrefab.StartsWith("Male")) {
-                    return true;
-                }
+                //if (!characterData.CharacterPrefab.StartsWith("Male")) {
+                 //   return true;
+                //}
                 //characterData.ApparelNames = new List<string>() {"Polo_Shirt_01", "Cargo_Pants", "Boots_01", "None"};
                 //characterData.ApparelMaterials = new List<int>() {1, 0, 0, 0};
                 //DDPlugin._info_log(characterData.CharacterPrefab);
-                //DDPlugin._info_log(String.Join(", ", characterData.ApparelNames));
+                DDPlugin._info_log(String.Join(", ", characterData.ApparelNames));
                 //DDPlugin._info_log(String.Join(", ", characterData.ApparelMaterials));
                 return true;
             }
@@ -105,7 +73,6 @@ public class CustomMaterialHandler : MonoBehaviour {
             m_instance = CGameManager.Instance.gameObject.AddComponent<CustomMaterialHandler>();
             CEventManager.AddListener<CEventPlayer_GameDataFinishLoaded>(m_instance.on_game_data_finish_loaded);
             m_instance.reload_textures();
-            m_instance.m_force_wear = Settings.m_apparel_force_wear.Value.Replace(" ", "").Split(',');
         }  catch (Exception e) {
             DDPlugin._error_log("** CustomMaterialHandler.initialize ERROR - " + e);
         }
@@ -125,7 +92,7 @@ public class CustomMaterialHandler : MonoBehaviour {
     }
 
     private void on_game_data_finish_loaded(CEventPlayer_GameDataFinishLoaded evt) {
-        this.update_apparel_dict();
+        
     }
 
     public void reload_textures() {
@@ -137,7 +104,6 @@ public class CustomMaterialHandler : MonoBehaviour {
                 Directory.CreateDirectory(root_dir);
             }
             this.m_textures = new CustomTextureDict();
-            this.m_patched_keys.reset();
             int total_counter = 0;
             foreach (string mod_dir in Directory.GetDirectories(root_dir)) {
                 string mod_name = Path.GetFileName(mod_dir);
@@ -163,42 +129,4 @@ public class CustomMaterialHandler : MonoBehaviour {
         }
     }
 
-    private void update_apparel_dict() {
-        try {
-            if (this.m_apparel_names != null) {
-                return;
-            }
-            this.m_apparel_names = new Dictionary<string, List<string>>();
-            Dictionary<string, Customer> prefabs = new Dictionary<string, Customer>() {
-                {"Female", CustomerManager.Instance.m_CustomerFemalePrefab},
-                {"Male", CustomerManager.Instance.m_CustomerPrefab}
-            };
-            foreach (string key in prefabs.Keys) {
-                this.m_apparel_names[key] = new List<string>();
-                foreach (CC_CharacterData character_data in prefabs[key].m_CharacterCustom.Presets.Presets) {
-                    foreach (string name in character_data.ApparelNames) {
-                        if (name != "None" && !this.m_apparel_names[key].Contains(name)) {
-                            this.m_apparel_names[key].Add(name);
-                        }
-                    }
-                }
-            }
-            List<string> lines = new List<string>();
-            foreach (string key in this.m_apparel_names.Keys) {
-                this.m_apparel_names[key].Sort();
-                lines.Add($"\n=== {key} ===\n");
-                foreach (string name in this.m_apparel_names[key]) {
-                    lines.Add(name);
-                }
-            }
-            foreach (string name in this.m_force_wear) {
-                if (!this.m_apparel_names["Female"].Contains(name) && !this.m_apparel_names["Male"].Contains(name)) {
-                    DDPlugin._warn_log($"* CustomMaterialHandler.update_apparel_dict WARNING - '{name}' is not a valid apparel label; see list above.");
-                }
-            }
-            DDPlugin._info_log($"Complete list of apparel names for use in 'Force Wear' setting:\n{string.Join("\n", lines)}\n");
-        } catch (Exception e) {
-            DDPlugin._error_log("** CustomMaterialHandler.update_apparel_dict ERROR - " + e);
-        }
-    }
 }
