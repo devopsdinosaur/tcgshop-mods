@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using UnityEngine;
 
 class CustomTextureDict {
     private Dictionary<string, CustomTexture> m_textures = new Dictionary<string, CustomTexture>();
@@ -31,5 +32,64 @@ class CustomTextureDict {
             }
         }
         return true;
+    }
+
+    public void apply_matching_textures(Transform parent) {
+        try {
+            foreach (string key in this.m_textures.Keys) {
+                string[] names = key.Split('/');
+                int name_index = 0;
+
+                Transform check_renderers(Transform transform) {
+                    int renderer_index = 0;
+                    foreach (SkinnedMeshRenderer renderer in transform.gameObject.GetComponents<SkinnedMeshRenderer>()) {
+                        if ($"renderer_{renderer_index++:D3}" != names[name_index]) { 
+                            continue;
+                        }
+                        name_index++;
+                        int material_index = 0;
+                        foreach (Material material in renderer.materials) {
+                            if ($"material_{material_index++:D3}" != names[name_index]) {
+                                continue;
+                            }
+                            name_index++;
+                            foreach (string property_name in material.GetTexturePropertyNames()) {
+                                if (property_name != names[name_index]) {
+                                    continue;
+                                }
+                                material.SetTexture(property_name, this.m_textures[key].Texture);
+                                return transform;
+                            }
+                            name_index--;
+                        }
+                        name_index--;
+                    }
+                    name_index--;
+                    return null;
+                }
+
+                Transform check_match(Transform transform) {
+                    //DDPlugin._debug_log($"name_index: {name_index}, names[name_index]: {names[name_index]}, transform.name: {transform.name}");
+                    if (name_index >= names.Length - 2 || ((name_index == 0 && !transform.name.StartsWith(names[name_index])) || (name_index > 0 && names[name_index] != transform.name.Replace(" Variant(Clone)", "")))) {
+                        return null;
+                    }
+                    if (names[++name_index].StartsWith("renderer_")) {
+                        return check_renderers(transform);
+                    }
+                    foreach (Transform child in transform) {
+                        Transform match = check_match(child);
+                        if (match != null) {
+                            return match;
+                        }
+                    }
+                    name_index--;
+                    return null;
+                }
+
+                check_match(parent);
+            }
+        } catch (Exception e) {
+            DDPlugin._error_log("** CustomTextureDict.apply_matching_textures ERROR - " + e);
+        }
     }
 }

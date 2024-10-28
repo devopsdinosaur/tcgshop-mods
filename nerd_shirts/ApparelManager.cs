@@ -20,7 +20,7 @@ public class ApparelManager : MonoBehaviour {
     private ApparelInfo[][][] m_gender_and_slot_sorted_apparel;
     private ApparelInfo[][][] m_force_wear_apparel;
 
-    private bool harmony_patch_ApplyCharacterVars(CharacterCustomization __instance, CC_CharacterData characterData) {
+    private bool harmony_patch_ApplyCharacterVars_prefix(CharacterCustomization __instance, CC_CharacterData characterData) {
         try {
             if (!Settings.m_enabled.Value) {
                 return true;
@@ -29,21 +29,49 @@ public class ApparelManager : MonoBehaviour {
                 this.update_apparel_structs();
             }
             List<string> new_names = new List<string>();
+            List<int> new_selections = new List<int>();
+            //DDPlugin._debug_log("1");
             ApparelInfo[][] force_items = this.m_force_wear_apparel[GenderInfo.get_gender_from_prefab_hash(characterData.CharacterPrefab.GetHashCode()).Gender];
             for (int slot = 0; slot < ApparelInfo.NUM_SLOTS; slot++) {
+                //DDPlugin._debug_log("2");
                 ApparelInfo[] force_slot = force_items[slot];
-                if (force_slot.Length == 0) {
+                //DDPlugin._debug_log("2.5");
+                void set_apparel_and_random_material_selection(string new_name) {
+                    //DDPlugin._debug_log(new_name);
+                    foreach (scrObj_Apparel.Apparel apparel in __instance.ApparelTables[slot].Items) {
+                        //DDPlugin._debug_log("3");
+                        if (apparel.Name == new_name) {
+                            //DDPlugin._debug_log("4");
+                            if (apparel.Materials.Count == 0) {
+                                //DDPlugin._warn_log($"* ApparelManager.harmony_patch_ApplyCharacterVars_prefix WARNING - '{new_name}' apparel item has no associated material definitions for current prefab customization instance; cannot force wear, falling back to original item.");
+                                break;
+                            }
+                            new_names.Add(new_name);
+                            new_selections.Add(UnityEngine.Random.Range(0, apparel.Materials.Count - 1));
+                            return;
+                        }
+                    }
                     new_names.Add(characterData.ApparelNames[slot]);
+                    new_selections.Add(characterData.ApparelMaterials[slot]);
+                }
+                if (force_slot.Length == 0) {
+                    //DDPlugin._debug_log("default_name");
+                    //DDPlugin._debug_log(characterData.ApparelNames[slot]);
+                    new_names.Add(characterData.ApparelNames[slot]);
+                    new_selections.Add(characterData.ApparelMaterials[slot]);
                 } else if (force_items.Length == 1) {
-                    new_names.Add(force_slot[0].Name);
+                    set_apparel_and_random_material_selection(force_slot[0].Name);
                 } else {
-                    new_names.Add(force_slot[UnityEngine.Random.Range(0, force_slot.Length - 1)].Name);
+                    set_apparel_and_random_material_selection(force_slot[UnityEngine.Random.Range(0, force_slot.Length - 1)].Name);
                 }
             }
             characterData.ApparelNames = new_names;
+            characterData.ApparelMaterials = new_selections;
+            //DDPlugin._debug_log(string.Join(", ", characterData.ApparelNames));
+            //DDPlugin._debug_log(string.Join(", ", characterData.ApparelMaterials));
             return true;
         } catch (Exception e) {
-            DDPlugin._error_log("** ApparelManager.harmony_patch_ApplyCharacterVars ERROR - " + e);
+            DDPlugin._error_log("** ApparelManager.harmony_patch_ApplyCharacterVars_prefix ERROR - " + e);
         }
         return true;
     }
@@ -52,7 +80,7 @@ public class ApparelManager : MonoBehaviour {
         [HarmonyPatch(typeof(CharacterCustomization), "ApplyCharacterVars")]
         class HarmonyPatch_CharacterCustomization_ApplyCharacterVars {
             private static bool Prefix(CharacterCustomization __instance, CC_CharacterData characterData) {
-                return ApparelManager.Instance.harmony_patch_ApplyCharacterVars(__instance, characterData);
+                return ApparelManager.Instance.harmony_patch_ApplyCharacterVars_prefix(__instance, characterData);
             }
         }
     }

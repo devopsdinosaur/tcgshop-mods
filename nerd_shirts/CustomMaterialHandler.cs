@@ -15,28 +15,22 @@ public class CustomMaterialHandler : MonoBehaviour {
     }
     private CustomTextureDict m_textures = null;
     
-    private bool harmony_patch_CharacterCustomization_setApparel(CharacterCustomization __instance, int selection, int slot, int materialSelection) {
-        return true;
+    private void harmony_patch_CharacterCustomization_setApparel_postfix(CharacterCustomization __instance, int selection, int slot, int materialSelection) {
+        if (Settings.m_enabled.Value && TextureDumper.Instance == null) {
+            this.m_textures.apply_matching_textures(__instance.transform);
+        }
     }
 
     private bool harmony_patch_CharacterCustomization_setApparelByName(CharacterCustomization __instance, string name, int slot, int materialSelection) {
-        try {
-            if (!Settings.m_enabled.Value || TextureDumper.Instance != null) {
-                return true;
-            }
-            
-            return true;
-        } catch (Exception e) {
-            DDPlugin._error_log("** apparel_ensure_patched_texture_list ERROR - " + e);
-        }
+        //DDPlugin._debug_log($"customer name: {__instance.CharacterName}, apparel name: {name}, slot: {slot}, mat: {materialSelection}");
         return true;
     }
 
     private class HarmonyPatches {
         [HarmonyPatch(typeof(CharacterCustomization), "setApparel")]
         class HarmonyPatch_CharacterCustomization_setApparel {
-            private static bool Prefix(CharacterCustomization __instance, int selection, int slot, int materialSelection) {
-                return CustomMaterialHandler.Instance.harmony_patch_CharacterCustomization_setApparel(__instance, selection, slot, materialSelection);
+            private static void Postfix(CharacterCustomization __instance, int selection, int slot, int materialSelection) {
+                CustomMaterialHandler.Instance.harmony_patch_CharacterCustomization_setApparel_postfix(__instance, selection, slot, materialSelection);
             }
         }
 
@@ -94,7 +88,7 @@ public class CustomMaterialHandler : MonoBehaviour {
                     continue;
                 }
                 int local_counter = 0;
-                foreach (string wildcard in new string[] { "*.png", "*.txt" }) {
+                foreach (string wildcard in new string[] {"*.png", "*.txt"}) {
                     foreach (string file_path in Directory.GetFiles(mod_dir, wildcard, SearchOption.AllDirectories)) {
                         string key = this.key_from_path(file_path, mod_dir);
                         DDPlugin._debug_log($"==> key: '{key}', path: '{file_path}'.");
