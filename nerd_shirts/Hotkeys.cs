@@ -66,7 +66,6 @@ class Hotkeys {
             } else if (is_hotkey_down(HOTKEY_SPAWN_ALL_PRESETS)) {
                 TextureTester.Instance.spawn_all_presets();
             } else if (is_hotkey_down(HOTKEY_DESTROY_ALL_SPAWNS)) {
-                DDPlugin._info_log("2");
                 TextureTester.Instance.destroy_all_spawns();
             }
         }

@@ -41,6 +41,7 @@ public class TestingPlugin : DDPlugin {
 	private void Awake() {
 		logger = this.Logger;
 		try {
+			DDPlugin.set_log_level(DDPlugin.LogLevel.Debug);
 			this.m_harmony.PatchAll();
 			logger.LogInfo($"{PluginInfo.GUID} v{PluginInfo.VERSION} loaded.");
 		} catch (Exception e) {
@@ -245,7 +246,7 @@ public class TestingPlugin : DDPlugin {
 		*/
 	}
 
-    /*
+	/*
 	[HarmonyPatch(typeof(), "")]
 	class HarmonyPatch_ {
 		private static bool Prefix() {

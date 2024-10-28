@@ -1,23 +1,19 @@
-﻿
+﻿using System.Collections.Generic;
+
 public class ApparelInfo {
-    public const int GENDER_FEMALE = 0;
-    public const int GENDER_MALE = 1;
-    private static readonly string[] GENDER_STRINGS = {"Female", "Male"};
+    public const int NUM_SLOTS = 4;
     public const int SLOT_BODY = 0;
     public const int SLOT_LEGS = 1;
     public const int SLOT_FEET = 2;
     public const int SLOT_ACCESSORY = 3;
     private static readonly string[] SLOT_STRINGS = {"Body", "Legs", "Feet", "Accessory"};
+    public static readonly string APPAREL_NONE = "None";
 
-    private int m_gender;
-    public int Gender {
+    private static List<ApparelInfo> m_all_apparel = new List<ApparelInfo>();
+    private GenderInfo m_gender;
+    public GenderInfo Gender {
         get {
             return this.m_gender;
-        }
-    }
-    public string GenderString {
-        get {
-            return GENDER_STRINGS[this.m_gender];
         }
     }
     private int m_slot;
@@ -28,7 +24,7 @@ public class ApparelInfo {
     }
     public string SlotString {
         get {
-            return SLOT_STRINGS[this.m_slot];
+            return slot_string(this.m_slot);
         }
     }
     private string m_name;
@@ -38,9 +34,36 @@ public class ApparelInfo {
         }
     }
 
-    public ApparelInfo(int gender, int slot, string name) {
+    public static ApparelInfo create_or_use_existing(int gender, int slot, string name) {
+        foreach (ApparelInfo existing_item in m_all_apparel) {
+            if (existing_item.Gender.Gender == gender && existing_item.Slot == slot && existing_item.Name == name) {
+                return existing_item;
+            }
+        }
+        ApparelInfo new_item = new ApparelInfo(gender, slot, name);
+        m_all_apparel.Add(new_item);
+        return new_item;
+    }
+
+    private ApparelInfo(int gender, int slot, string name) {
         this.m_gender = gender;
         this.m_slot = slot;
         this.m_name = name;
     }
+
+    public static string slot_string(int slot) {
+        return (slot >= 0 && slot < SLOT_STRINGS.Length ? SLOT_STRINGS[slot] : APPAREL_NONE);
+    }
+    /*
+    public override bool Equals(object _other) {
+        if (_other == null || !(_other is ApparelInfo other)) {
+            return false;
+        }
+        return (this.m_gender == other.m_gender && this.m_slot == other.m_slot && this.m_name == other.m_name);
+    }
+
+    public override int GetHashCode() {
+        return base.GetHashCode();
+    }
+    */
 }

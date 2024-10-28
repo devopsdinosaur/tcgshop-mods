@@ -33,23 +33,6 @@ public class CustomMaterialHandler : MonoBehaviour {
     }
 
     private class HarmonyPatches {
-        [HarmonyPatch(typeof(CharacterCustomization), "ApplyCharacterVars")]
-        class HarmonyPatch_CharacterCustomization_ApplyCharacterVars {
-            private static bool Prefix(CharacterCustomization __instance, CC_CharacterData characterData) {
-                // Polo_Shirt_01, Cargo_Pants, Boots_01, None
-                // 1, 0, 0, 0
-                //if (!characterData.CharacterPrefab.StartsWith("Male")) {
-                 //   return true;
-                //}
-                //characterData.ApparelNames = new List<string>() {"Polo_Shirt_01", "Cargo_Pants", "Boots_01", "None"};
-                //characterData.ApparelMaterials = new List<int>() {1, 0, 0, 0};
-                //DDPlugin._info_log(characterData.CharacterPrefab);
-                DDPlugin._info_log(String.Join(", ", characterData.ApparelNames));
-                //DDPlugin._info_log(String.Join(", ", characterData.ApparelMaterials));
-                return true;
-            }
-        }
-
         [HarmonyPatch(typeof(CharacterCustomization), "setApparel")]
         class HarmonyPatch_CharacterCustomization_setApparel {
             private static bool Prefix(CharacterCustomization __instance, int selection, int slot, int materialSelection) {

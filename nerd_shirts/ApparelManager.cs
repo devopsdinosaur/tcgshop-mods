@@ -1,5 +1,7 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using CC;
 
@@ -10,6 +12,50 @@ public class ApparelManager : MonoBehaviour {
             return m_instance;
         }
     }
+    private ApparelInfo[] m_all_apparel = null;
+    private Dictionary<string, ApparelInfo> m_all_apparel_dict;
+    private ApparelOutfit[][] m_preset_outfits;
+    private ApparelInfo[][] m_gender_sorted_apparel;
+    private ApparelInfo[][] m_slot_sorted_apparel;
+    private ApparelInfo[][][] m_gender_and_slot_sorted_apparel;
+    private ApparelInfo[][][] m_force_wear_apparel;
+
+    private bool harmony_patch_ApplyCharacterVars(CharacterCustomization __instance, CC_CharacterData characterData) {
+        try {
+            if (!Settings.m_enabled.Value) {
+                return true;
+            }
+            if (this.m_all_apparel == null) {
+                this.update_apparel_structs();
+            }
+            List<string> new_names = new List<string>();
+            ApparelInfo[][] force_items = this.m_force_wear_apparel[GenderInfo.get_gender_from_prefab_hash(characterData.CharacterPrefab.GetHashCode()).Gender];
+            for (int slot = 0; slot < ApparelInfo.NUM_SLOTS; slot++) {
+                ApparelInfo[] force_slot = force_items[slot];
+                if (force_slot.Length == 0) {
+                    new_names.Add(characterData.ApparelNames[slot]);
+                } else if (force_items.Length == 1) {
+                    new_names.Add(force_slot[0].Name);
+                } else {
+                    new_names.Add(force_slot[UnityEngine.Random.Range(0, force_slot.Length - 1)].Name);
+                }
+            }
+            characterData.ApparelNames = new_names;
+            return true;
+        } catch (Exception e) {
+            DDPlugin._error_log("** ApparelManager.harmony_patch_ApplyCharacterVars ERROR - " + e);
+        }
+        return true;
+    }
+
+    class HarmonyPatches {
+        [HarmonyPatch(typeof(CharacterCustomization), "ApplyCharacterVars")]
+        class HarmonyPatch_CharacterCustomization_ApplyCharacterVars {
+            private static bool Prefix(CharacterCustomization __instance, CC_CharacterData characterData) {
+                return ApparelManager.Instance.harmony_patch_ApplyCharacterVars(__instance, characterData);
+            }
+        }
+    }
 
     public static void initialize() {
         try {
@@ -17,51 +63,93 @@ public class ApparelManager : MonoBehaviour {
                 return;
             }
             m_instance = CGameManager.Instance.gameObject.AddComponent<ApparelManager>();
-            CEventManager.AddListener<CEventPlayer_GameDataFinishLoaded>(m_instance.on_game_data_finish_loaded);
         } catch (Exception e) {
             DDPlugin._error_log("** ApparelInfoManager.initialize ERROR - " + e);
         }
     }
 
-    private void on_game_data_finish_loaded(CEventPlayer_GameDataFinishLoaded evt) {
-        this.update_apparel_structs();
-    }
-
     private void update_apparel_structs() {
         try {
-            Dictionary<int, Customer> prefabs = new Dictionary<int, Customer>() {
-                {ApparelInfo.GENDER_FEMALE, CustomerManager.Instance.m_CustomerFemalePrefab},
-                {ApparelInfo.GENDER_MALE, CustomerManager.Instance.m_CustomerPrefab}
+            Customer[] prefabs = new Customer[GenderInfo.NUM_GENDERS] {
+                CustomerManager.Instance.m_CustomerFemalePrefab,
+                CustomerManager.Instance.m_CustomerPrefab,
+                null // <-- TODO: Add non-binary prefab in assetbundle
             };
-            foreach (int key in prefabs.Keys) {
-                //this.m_apparel_names[key] = new List<string>();
-                foreach (CC_CharacterData character_data in prefabs[key].m_CharacterCustom.Presets.Presets) {
-                    DDPlugin._debug_log($"{character_data.CharacterName}: {string.Join(", ", character_data.ApparelNames)}");
-                    foreach (string name in character_data.ApparelNames) {
-                        //if (name != "None" && !this.m_apparel_names[key].Contains(name)) {
-                        //    this.m_apparel_names[key].Add(name);
-                        //}
+            List<string> force_wear_names = new List<string>();
+            foreach (string _word in Settings.m_apparel_force_wear.Value.Replace(" ", "").Split(',')) {
+                string word = _word.Trim();
+                if (!string.IsNullOrEmpty(word) && !force_wear_names.Contains(word)) {
+                    force_wear_names.Add(word);
+                }
+            }
+            List<ApparelInfo> all_apparel = new List<ApparelInfo>();
+            this.m_all_apparel_dict = new Dictionary<string, ApparelInfo>();
+            List<ApparelInfo>[] gender_sorted_apparel = new List<ApparelInfo>[GenderInfo.NUM_GENDERS];
+            List<ApparelInfo>[] slot_sorted_apparel = new List<ApparelInfo>[ApparelInfo.NUM_SLOTS];
+            List<ApparelInfo>[][] gender_and_slot_sorted_apparel = new List<ApparelInfo>[GenderInfo.NUM_GENDERS][];
+            List<ApparelInfo>[][] force_wear_apparel = new List<ApparelInfo>[GenderInfo.NUM_GENDERS][];
+            this.m_preset_outfits = new ApparelOutfit[GenderInfo.NUM_GENDERS][];
+            for (int slot = 0; slot < ApparelInfo.NUM_SLOTS; slot++) {
+                slot_sorted_apparel[slot] = new List<ApparelInfo>();
+            }
+            for (int gender = 0; gender < GenderInfo.NUM_GENDERS; gender++) {
+                gender_sorted_apparel[gender] = new List<ApparelInfo>();
+                this.m_preset_outfits[gender] = new ApparelOutfit[(prefabs[gender] == null ? 0 : prefabs[gender].m_CharacterCustom.Presets.Presets.Count)];
+                gender_and_slot_sorted_apparel[gender] = new List<ApparelInfo>[ApparelInfo.NUM_SLOTS];
+                force_wear_apparel[gender] = new List<ApparelInfo>[ApparelInfo.NUM_SLOTS];
+                for (int slot = 0; slot < ApparelInfo.NUM_SLOTS; slot++) {
+                    gender_and_slot_sorted_apparel[gender][slot] = new List<ApparelInfo>();
+                    force_wear_apparel[gender][slot] = new List<ApparelInfo>();
+                }
+                for (int index = 0; index < this.m_preset_outfits[gender].Length; index++) {
+                    CC_CharacterData data = prefabs[gender].m_CharacterCustom.Presets.Presets[index];
+                    GenderInfo.set_gender_prefab_hash(data.CharacterPrefab.GetHashCode(), gender);
+                    ApparelOutfit outfit = this.m_preset_outfits[gender][index] = new ApparelOutfit(gender, data);
+                    for (int slot = 0; slot < ApparelInfo.NUM_SLOTS; slot++) {
+                        ApparelInfo apparel = outfit.Outfit[slot];
+                        if (apparel.Name == ApparelInfo.APPAREL_NONE) {
+                            continue;
+                        }
+                        if (!this.m_all_apparel_dict.ContainsKey(apparel.Name)) {
+                            this.m_all_apparel_dict[apparel.Name] = apparel;
+                        }
+                        foreach (List<ApparelInfo> items in new List<ApparelInfo>[] {all_apparel, gender_sorted_apparel[gender], slot_sorted_apparel[apparel.Slot], gender_and_slot_sorted_apparel[gender][apparel.Slot]}) {
+                            if (!items.Contains(apparel)) {
+                                items.Add(apparel);
+                            }
+                        }
+                        if (force_wear_names.Contains(apparel.Name)) {
+                            force_wear_apparel[gender][apparel.Slot].Add(apparel);
+                        }
                     }
                 }
             }
+            this.m_all_apparel = all_apparel.OrderBy(item => item.Name).ToArray();
+            this.m_gender_sorted_apparel = new ApparelInfo[GenderInfo.NUM_GENDERS][];
+            this.m_slot_sorted_apparel = new ApparelInfo[ApparelInfo.NUM_SLOTS][];
+            this.m_gender_and_slot_sorted_apparel = new ApparelInfo[GenderInfo.NUM_GENDERS][][];
+            this.m_force_wear_apparel = new ApparelInfo[GenderInfo.NUM_GENDERS][][];
             List<string> lines = new List<string>();
-            //foreach (string key in this.m_apparel_names.Keys) {
-            //    this.m_apparel_names[key].Sort();
-            //    lines.Add($"\n=== {key} ===\n");
-            //    foreach (string name in this.m_apparel_names[key]) {
-            //        lines.Add(name);
-            //    }
-            //}
-            List<string> words = new List<string>();
-            foreach (string _word in Settings.m_apparel_force_wear.Value.Replace(" ", "").Split(',')) {
-                string word = _word.Trim();
-                if (!string.IsNullOrEmpty(word)) {
-                    words.Add(word);
+            for (int gender = 0; gender < GenderInfo.NUM_GENDERS; gender++) {
+                lines.Add($"\n\n==== {GenderInfo.gender_string(gender)} ====");
+                this.m_gender_sorted_apparel[gender] = gender_sorted_apparel[gender].OrderBy(item => item.Name).ToList().ToArray();
+                this.m_gender_and_slot_sorted_apparel[gender] = new ApparelInfo[ApparelInfo.NUM_SLOTS][];
+                this.m_force_wear_apparel[gender] = new ApparelInfo[ApparelInfo.NUM_SLOTS][];
+                for (int slot = 0; slot < ApparelInfo.NUM_SLOTS; slot++) {
+                    lines.Add($"\n++ {GenderInfo.gender_string(gender)}: {ApparelInfo.slot_string(slot)} ++\n");
+                    this.m_gender_and_slot_sorted_apparel[gender][slot] = gender_and_slot_sorted_apparel[gender][slot].OrderBy(item => item.Name).ToArray();
+                    this.m_force_wear_apparel[gender][slot] = force_wear_apparel[gender][slot].OrderBy(item => item.Name).ToArray();
+                    foreach (ApparelInfo apparel in this.m_gender_and_slot_sorted_apparel[gender][slot]) {
+                        lines.Add($"{apparel.Name}{(force_wear_apparel[gender][slot].Contains(apparel) ? " [** FORCE **]" : "")}");
+                    }
                 }
             }
-            DDPlugin._info_log($"Complete list of apparel names for use in 'Force Wear' setting:\n{string.Join("\n", lines)}\n");
+            for (int slot = 0; slot < ApparelInfo.NUM_SLOTS; slot++) {
+                this.m_slot_sorted_apparel[slot] = slot_sorted_apparel[slot].OrderBy(item => item.Name).ToArray();
+            }
+            DDPlugin._info_log($"Complete list of apparel names for use in 'Force Wear' setting (indicated with [** FORCE **] if flagged as such in setting):\n{string.Join("\n", lines)}\n");
         } catch (Exception e) {
-            DDPlugin._error_log("** CustomMaterialHandler.update_apparel_dict ERROR - " + e);
+            DDPlugin._error_log("** CustomMaterialHandler.update_apparel_structs ERROR - " + e);
         }
     }
 }
