@@ -3,7 +3,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
-class CustomTexture {
+public class CustomTexture {
     public string m_key;
     public string m_path;
     private Texture2D m_texture;

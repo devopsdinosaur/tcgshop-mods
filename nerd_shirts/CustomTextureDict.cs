@@ -3,8 +3,21 @@ using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 
-class CustomTextureDict {
+public class CustomTextureDict {
     private Dictionary<string, CustomTexture> m_textures = new Dictionary<string, CustomTexture>();
+    public Dictionary<string, CustomTexture> Textures {
+        get {
+            return this.m_textures;
+        }
+    }
+    private Dictionary<string, string> m_shader_paths = new Dictionary<string, string>();
+    public Dictionary<string, string> ShaderPaths {
+        get {
+            return this.m_shader_paths;
+        }
+    }
+    private Dictionary<string, AddMaterial> m_add_materials = new Dictionary<string, AddMaterial>();
+    private Dictionary<int, List<int>> m_already_added_materials = new Dictionary<int, List<int>>();
 
     public bool add_item(string key, string path) {
         if (this.m_textures.TryGetValue(key, out CustomTexture texture)) {
@@ -30,6 +43,8 @@ class CustomTextureDict {
                 DDPlugin._info_log($"* CustomTextureDict.add_item WARNING - exception occured when reading '{path}'; ignored.  Exception: " + e);
                 return false;
             }
+        } else if (Path.GetFileName(path) == "__shader__.json") {
+            this.m_shader_paths[key] = path;
         }
         return true;
     }
@@ -68,12 +83,12 @@ class CustomTextureDict {
                                     add_root_key = (index == 0 ? names[index] : add_root_key + "/" + names[index]);
                                 }
                                 add_root_key += "/__add__";
-                                foreach (string key in this.m_textures.Keys) {
-                                    if (key.StartsWith(add_root_key)) {
-                                        parallel_keys.Add(key);
+                                foreach (KeyValuePair<string, AddMaterial> kvp in this.m_add_materials) {
+                                    if (!kvp.Key.StartsWith(add_root_key) || (this.m_already_added_materials.TryGetValue(renderer.GetHashCode(), out List<int> hashes) && hashes.Contains(kvp.Value.GetHashCode()))) {
+                                        continue;
                                     }
+                                    kvp.Value.apply(renderer);
                                 }
-                                DDPlugin._debug_log(string.Join("\n", parallel_keys));
                                 return transform;
                             }
                             name_index--;
@@ -108,4 +123,37 @@ class CustomTextureDict {
             DDPlugin._error_log("** CustomTextureDict.apply_matching_textures ERROR - " + e);
         }
     }
+
+    public Dictionary<string, CustomTexture> get_textures_with_key_prefix(string prefix) {
+        Dictionary<string, CustomTexture> result = new Dictionary<string, CustomTexture>();
+        foreach (string key in this.m_textures.Keys) {
+            if (key.StartsWith(prefix)) {
+                result[key] = this.m_textures[key];
+            }
+        }
+        return result;
+    }
+
+    public void load_textures_post_process() {
+        DDPlugin._info_log($"Post-processing loaded textures to configure custom materials.");
+        foreach (string key in this.m_shader_paths.Keys) {
+            try {
+                string base_key = Path.GetDirectoryName(key).Replace("\\", "/");
+                DDPlugin._debug_log(base_key);
+                AddMaterial material = AddMaterial.create(
+                    this.m_shader_paths[key],
+                    base_key,
+                    ShaderInfo.parse(this.m_shader_paths[key]),
+                    this.get_textures_with_key_prefix(base_key)
+                );
+                if (material != null) {
+                    this.m_add_materials[material.Key] = material;
+                }
+            } catch (Exception e) {
+                DDPlugin._warn_log($"* AddMaterial.create WARNING - an exception occurred while creating Unity material using settings in '{this.m_shader_paths[key]}'; this material will be ignored.\nError: " + e);
+            }
+        }
+        DDPlugin._info_log($"Processed {this.m_add_materials} custom materials.");
+    }
+
 }

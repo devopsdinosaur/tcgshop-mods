@@ -88,7 +88,7 @@ public class CustomMaterialHandler : MonoBehaviour {
                     continue;
                 }
                 int local_counter = 0;
-                foreach (string wildcard in new string[] {"*.png", "*.txt"}) {
+                foreach (string wildcard in new string[] {"*.png", "*.txt", "*.json"}) {
                     foreach (string file_path in Directory.GetFiles(mod_dir, wildcard, SearchOption.AllDirectories)) {
                         string key = this.key_from_path(file_path, mod_dir);
                         DDPlugin._debug_log($"==> key: '{key}', path: '{file_path}'.");
@@ -101,6 +101,7 @@ public class CustomMaterialHandler : MonoBehaviour {
                 total_counter += local_counter;
             }
             DDPlugin._info_log($"Found {total_counter} total textures.");
+            this.m_textures.load_textures_post_process();
         } catch (Exception e) {
             DDPlugin._error_log("** CustomMaterialHandler.reload_textures ERROR - " + e);
         }
