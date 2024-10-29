@@ -37,6 +37,9 @@ class CustomTextureDict {
     public void apply_matching_textures(Transform parent) {
         try {
             foreach (string key in this.m_textures.Keys) {
+                if (key.Contains("/__add__/")) {
+                    continue;
+                }
                 string[] names = key.Split('/');
                 int name_index = 0;
 
@@ -58,6 +61,19 @@ class CustomTextureDict {
                                     continue;
                                 }
                                 material.SetTexture(property_name, this.m_textures[key].Texture);
+                                name_index--;
+                                List<string> parallel_keys = new List<string>();
+                                string add_root_key = null;
+                                for (int index = 0; index < name_index; index++) {
+                                    add_root_key = (index == 0 ? names[index] : add_root_key + "/" + names[index]);
+                                }
+                                add_root_key += "/__add__";
+                                foreach (string key in this.m_textures.Keys) {
+                                    if (key.StartsWith(add_root_key)) {
+                                        parallel_keys.Add(key);
+                                    }
+                                }
+                                DDPlugin._debug_log(string.Join("\n", parallel_keys));
                                 return transform;
                             }
                             name_index--;

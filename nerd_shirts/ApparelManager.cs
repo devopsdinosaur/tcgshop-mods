@@ -30,18 +30,12 @@ public class ApparelManager : MonoBehaviour {
             }
             List<string> new_names = new List<string>();
             List<int> new_selections = new List<int>();
-            //DDPlugin._debug_log("1");
             ApparelInfo[][] force_items = this.m_force_wear_apparel[GenderInfo.get_gender_from_prefab_hash(characterData.CharacterPrefab.GetHashCode()).Gender];
             for (int slot = 0; slot < ApparelInfo.NUM_SLOTS; slot++) {
-                //DDPlugin._debug_log("2");
                 ApparelInfo[] force_slot = force_items[slot];
-                //DDPlugin._debug_log("2.5");
                 void set_apparel_and_random_material_selection(string new_name) {
-                    //DDPlugin._debug_log(new_name);
                     foreach (scrObj_Apparel.Apparel apparel in __instance.ApparelTables[slot].Items) {
-                        //DDPlugin._debug_log("3");
                         if (apparel.Name == new_name) {
-                            //DDPlugin._debug_log("4");
                             if (apparel.Materials.Count == 0) {
                                 //DDPlugin._warn_log($"* ApparelManager.harmony_patch_ApplyCharacterVars_prefix WARNING - '{new_name}' apparel item has no associated material definitions for current prefab customization instance; cannot force wear, falling back to original item.");
                                 break;
@@ -55,8 +49,6 @@ public class ApparelManager : MonoBehaviour {
                     new_selections.Add(characterData.ApparelMaterials[slot]);
                 }
                 if (force_slot.Length == 0) {
-                    //DDPlugin._debug_log("default_name");
-                    //DDPlugin._debug_log(characterData.ApparelNames[slot]);
                     new_names.Add(characterData.ApparelNames[slot]);
                     new_selections.Add(characterData.ApparelMaterials[slot]);
                 } else if (force_items.Length == 1) {
@@ -67,8 +59,6 @@ public class ApparelManager : MonoBehaviour {
             }
             characterData.ApparelNames = new_names;
             characterData.ApparelMaterials = new_selections;
-            //DDPlugin._debug_log(string.Join(", ", characterData.ApparelNames));
-            //DDPlugin._debug_log(string.Join(", ", characterData.ApparelMaterials));
             return true;
         } catch (Exception e) {
             DDPlugin._error_log("** ApparelManager.harmony_patch_ApplyCharacterVars_prefix ERROR - " + e);

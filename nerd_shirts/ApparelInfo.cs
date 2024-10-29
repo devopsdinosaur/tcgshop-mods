@@ -54,16 +54,4 @@ public class ApparelInfo {
     public static string slot_string(int slot) {
         return (slot >= 0 && slot < SLOT_STRINGS.Length ? SLOT_STRINGS[slot] : APPAREL_NONE);
     }
-    /*
-    public override bool Equals(object _other) {
-        if (_other == null || !(_other is ApparelInfo other)) {
-            return false;
-        }
-        return (this.m_gender == other.m_gender && this.m_slot == other.m_slot && this.m_name == other.m_name);
-    }
-
-    public override int GetHashCode() {
-        return base.GetHashCode();
-    }
-    */
 }
