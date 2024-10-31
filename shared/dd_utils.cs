@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using UnityEngine.SceneManagement;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 public abstract class DDPlugin : BaseUnityPlugin {
     public Dictionary<string, string> m_plugin_info = null;
@@ -178,6 +180,44 @@ public static class UnityUtils {
         }
         enum_descendants(parent, callback);
         return match;
+    }
+
+    public static Transform find_by_path(string path) {
+        Transform __find_by_path__(Scene scene, Transform parent, string[] path_parts, int part_index) {
+            Transform result = null;
+            if (parent == null) {
+                foreach (GameObject obj in scene.GetRootGameObjects()) {
+                    if ((result = __find_by_path__(scene, obj.transform, path_parts, 0)) != null) {
+                        return result;
+                    }
+                }
+            } else {
+                if (parent.name == path_parts[part_index]) {
+                    if (part_index == path_parts.Length - 1) {
+                        return parent;
+                    }
+                    foreach (Transform child in parent) {
+                        if ((result = __find_by_path__(scene, child, path_parts, part_index + 1)) != null) {
+                            return result;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+        Transform result = null;
+        string[] parts = path.Replace("\\", "/").Trim('/').Trim().Split('/');
+        Scene active_scene = SceneManager.GetActiveScene();
+        if ((result = __find_by_path__(active_scene, null, parts, -1)) != null) {
+            return result;
+        }
+        for (int scene_index = 0; scene_index < SceneManager.sceneCount; scene_index++) {
+            Scene scene = SceneManager.GetSceneAt(scene_index);
+            if (scene != active_scene && (result = __find_by_path__(scene, null, parts, -1)) != null) {
+                return result;
+            }
+        }
+        return null;
     }
 
     public static void list_ancestors(Transform obj, Action<object> log_method) {
@@ -541,6 +581,15 @@ public class PluginUpdater : MonoBehaviour {
         }
         this.m_actions = new_actions;
         this.m_is_dirty = true;
+    }
+
+    public void trigger(string name) {
+        foreach (UpdateInfo info in this.m_actions) {
+            if (info.name == name) {
+                info.elapsed = info.frequency;
+                return;
+            }
+        }
     }
 
     public void Update() {
