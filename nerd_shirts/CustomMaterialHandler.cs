@@ -14,7 +14,13 @@ public class CustomMaterialHandler : MonoBehaviour {
         }
     }
     private CustomTextureDict m_textures = null;
-    
+    public CustomTextureDict Textures {
+        get {
+            return this.m_textures;
+        }
+    }
+    private Dictionary<string, Shader> m_shaders = new Dictionary<string, Shader>();
+
     private void harmony_patch_CharacterCustomization_setApparel_postfix(CharacterCustomization __instance, int selection, int slot, int materialSelection) {
         if (Settings.m_enabled.Value && TextureDumper.Instance == null) {
             this.m_textures.apply_matching_textures(__instance.transform);
@@ -101,10 +107,37 @@ public class CustomMaterialHandler : MonoBehaviour {
                 total_counter += local_counter;
             }
             DDPlugin._info_log($"Found {total_counter} total textures.");
+            string shader_bundles_dir = Path.Combine(root_dir, "__shader_bundles__");
+            DDPlugin._info_log($"Loading custom shaders from '{shader_bundles_dir}'.");
+            foreach (string file_path in Directory.GetFiles(shader_bundles_dir, "*.assetbundle", SearchOption.AllDirectories)) {
+                try {
+                    DDPlugin._debug_log($"==> file: {file_path}");
+                    AssetBundle bundle = AssetBundle.LoadFromFile(file_path);
+                    foreach (string key in bundle.GetAllAssetNames()) {
+                        if (!key.EndsWith(".mat")) {
+                            continue;
+                        }
+                        string name = Path.GetFileName(key);
+                        name = name.Substring(0, name.Length - 4);
+                        DDPlugin._debug_log($"   --> asset: {key}, shader_name: {name}");
+                        this.m_shaders[name] = bundle.LoadAsset<Material>(key).shader;
+                    }
+                } catch (Exception e) {
+                    DDPlugin._error_log($"** CustomMaterialHandler.reload_textures ERROR - unable to extract shaders from '{file_path}'.  Error: " + e);
+                }
+            }
+            DDPlugin._info_log($"Found {this.m_shaders.Count} total shaders.");
             this.m_textures.load_textures_post_process();
         } catch (Exception e) {
             DDPlugin._error_log("** CustomMaterialHandler.reload_textures ERROR - " + e);
         }
     }
 
+    public Shader get_shader(string name) {
+        name = name.ToLower();
+        if (this.m_shaders.TryGetValue(name, out Shader shader)) {
+            return shader;
+        }
+        return Shader.Find(name);
+    }
 }

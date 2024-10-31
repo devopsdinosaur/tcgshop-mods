@@ -22,7 +22,7 @@ public class ApparelManager : MonoBehaviour {
 
     private bool harmony_patch_ApplyCharacterVars_prefix(CharacterCustomization __instance, CC_CharacterData characterData) {
         try {
-            if (!Settings.m_enabled.Value) {
+            if (!Settings.m_enabled.Value || TextureDumper.Instance != null) {
                 return true;
             }
             if (this.m_all_apparel == null) {
@@ -33,11 +33,13 @@ public class ApparelManager : MonoBehaviour {
             ApparelInfo[][] force_items = this.m_force_wear_apparel[GenderInfo.get_gender_from_prefab_hash(characterData.CharacterPrefab.GetHashCode()).Gender];
             for (int slot = 0; slot < ApparelInfo.NUM_SLOTS; slot++) {
                 ApparelInfo[] force_slot = force_items[slot];
+                
                 void set_apparel_and_random_material_selection(string new_name) {
+                    //DDPlugin._debug_log($"set_apparel_and_random_material_selection('{new_name}')");
                     foreach (scrObj_Apparel.Apparel apparel in __instance.ApparelTables[slot].Items) {
                         if (apparel.Name == new_name) {
                             if (apparel.Materials.Count == 0) {
-                                //DDPlugin._warn_log($"* ApparelManager.harmony_patch_ApplyCharacterVars_prefix WARNING - '{new_name}' apparel item has no associated material definitions for current prefab customization instance; cannot force wear, falling back to original item.");
+                                DDPlugin._debug_log($"* ApparelManager.harmony_patch_ApplyCharacterVars_prefix WARNING - '{new_name}' apparel item has no associated material definitions for current prefab customization instance; cannot force wear, falling back to original item.");
                                 break;
                             }
                             new_names.Add(new_name);
@@ -48,13 +50,14 @@ public class ApparelManager : MonoBehaviour {
                     new_names.Add(characterData.ApparelNames[slot]);
                     new_selections.Add(characterData.ApparelMaterials[slot]);
                 }
+
                 if (force_slot.Length == 0) {
                     new_names.Add(characterData.ApparelNames[slot]);
                     new_selections.Add(characterData.ApparelMaterials[slot]);
                 } else if (force_items.Length == 1) {
                     set_apparel_and_random_material_selection(force_slot[0].Name);
                 } else {
-                    set_apparel_and_random_material_selection(force_slot[UnityEngine.Random.Range(0, force_slot.Length - 1)].Name);
+                    set_apparel_and_random_material_selection(force_slot[UnityEngine.Random.Range(0, force_slot.Length)].Name);
                 }
             }
             characterData.ApparelNames = new_names;

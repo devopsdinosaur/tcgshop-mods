@@ -1,0 +1,1 @@
+Female/Crop_Top_01/Modular/Upper_Body/Crop_Top_01/Crop_Top_01_LOD0/renderer_000/__add__/decal/__shader__

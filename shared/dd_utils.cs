@@ -96,6 +96,7 @@ public abstract class DDPlugin : BaseUnityPlugin {
         }
         string template_data = File.ReadAllText(template_path);
         Dictionary<string, List<string[]>> categories = new Dictionary<string, List<string[]>>();
+        List<string> hotkey_lines = new List<string>();
         foreach (KeyValuePair<ConfigDefinition, ConfigEntryBase> kvp in this.Config.ToArray()) {
             if (!categories.Keys.Contains(kvp.Key.Section)) {
                 categories[kvp.Key.Section] = new List<string[]>();
@@ -104,7 +105,12 @@ public abstract class DDPlugin : BaseUnityPlugin {
                 kvp.Key.Key,
                 $"[*][b][i]{kvp.Key.Key}[/i][/b] - {kvp.Value.Description.Description}"
             });
+            if (kvp.Key.Section != "Hotkeys") {
+                continue;
+            }
+            hotkey_lines.Add($"[*][b][i]{(kvp.Key.Key.EndsWith("Modifier") ? "" : "[Modifier_Key] + ")}{kvp.Value.DefaultValue.ToString().Replace(",", " or ")}[/i][/b] - {kvp.Key.Key.Replace("Hotkey - ", "").Replace(" Hotkey", "")}");
         }
+        this.m_plugin_info["hotkeys"] = (hotkey_lines.Count > 0 ? $"\n[b][u][size=4]Hotkeys[/size][/u][/b]\n\n[list]\n{string.Join("\n", hotkey_lines)}\n[/list]" : "");
         List<string> ordered_categories = new List<string>(categories.Keys);
         ordered_categories.Sort();
         foreach (List<string[]> items in categories.Values) {

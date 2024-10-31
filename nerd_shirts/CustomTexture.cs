@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
 public class CustomTexture {
+    public static readonly CustomTexture PLACEHOLDER = new CustomTexture("__placeholder__", "");
     public string m_key;
     public string m_path;
     private Texture2D m_texture;

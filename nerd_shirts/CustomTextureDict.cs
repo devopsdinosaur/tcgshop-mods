@@ -17,7 +17,11 @@ public class CustomTextureDict {
         }
     }
     private Dictionary<string, AddMaterial> m_add_materials = new Dictionary<string, AddMaterial>();
-    private Dictionary<int, List<int>> m_already_added_materials = new Dictionary<int, List<int>>();
+    public Dictionary<string, AddMaterial> AddMaterials {
+        get {
+            return this.m_add_materials;
+        }
+    }
 
     public bool add_item(string key, string path) {
         if (this.m_textures.TryGetValue(key, out CustomTexture texture)) {
@@ -27,6 +31,8 @@ public class CustomTextureDict {
         string ext = path.Substring(path.Length - 4).ToLower();
         if (ext == ".png") {
             this.m_textures[key] = new CustomTexture(key, path);
+        } else if (Path.GetFileName(path).StartsWith("__shader__")) {
+            this.m_shader_paths[key] = path;
         } else if (ext == ".txt") {
             if (new FileInfo(path).Length > 1024) {
                 DDPlugin._info_log($"CustomTextureDict.add_item INFO - '{path}' is too large to be a link token file; ignored.");
@@ -43,9 +49,7 @@ public class CustomTextureDict {
                 DDPlugin._info_log($"* CustomTextureDict.add_item WARNING - exception occured when reading '{path}'; ignored.  Exception: " + e);
                 return false;
             }
-        } else if (Path.GetFileName(path) == "__shader__.json") {
-            this.m_shader_paths[key] = path;
-        }
+        } 
         return true;
     }
 
@@ -76,24 +80,20 @@ public class CustomTextureDict {
                                     continue;
                                 }
                                 material.SetTexture(property_name, this.m_textures[key].Texture);
-                                name_index--;
-                                List<string> parallel_keys = new List<string>();
-                                string add_root_key = null;
-                                for (int index = 0; index < name_index; index++) {
-                                    add_root_key = (index == 0 ? names[index] : add_root_key + "/" + names[index]);
-                                }
-                                add_root_key += "/__add__";
-                                foreach (KeyValuePair<string, AddMaterial> kvp in this.m_add_materials) {
-                                    if (!kvp.Key.StartsWith(add_root_key) || (this.m_already_added_materials.TryGetValue(renderer.GetHashCode(), out List<int> hashes) && hashes.Contains(kvp.Value.GetHashCode()))) {
-                                        continue;
-                                    }
-                                    kvp.Value.apply(renderer);
-                                }
-                                return transform;
                             }
                             name_index--;
                         }
-                        name_index--;
+                        string add_root_key = null;
+                        for (int index = 0; index < name_index; index++) {
+                            add_root_key = (index == 0 ? names[index] : add_root_key + "/" + names[index]);
+                        }
+                        foreach (KeyValuePair<string, AddMaterial> kvp in this.m_add_materials) {
+                            //DDPlugin._debug_log(kvp.Key);
+                            if (kvp.Key.StartsWith(add_root_key)) {
+                                kvp.Value.apply(renderer, add_root_key);
+                            }
+                        }
+                        return transform;
                     }
                     name_index--;
                     return null;
@@ -135,25 +135,86 @@ public class CustomTextureDict {
     }
 
     public void load_textures_post_process() {
-        DDPlugin._info_log($"Post-processing loaded textures to configure custom materials.");
-        foreach (string key in this.m_shader_paths.Keys) {
+        string[] keys = new List<string>(this.m_shader_paths.Keys).ToArray();
+
+        void add_texture_placeholder(string key) {
+            // Need to add a placeholder to the renderer because __add__ keys will not be
+            // checked unless there is something else at that same tree level.  Not the best
+            // design, but this is easier than reworking the system.
+            string renderer_key = null;
+            foreach (string name in key.Split('/')) {
+                renderer_key = (renderer_key == null ? name : renderer_key + "/" + name);
+                if (name.StartsWith("renderer_")) {
+                    break;
+                }
+            }
+            DDPlugin._debug_log(renderer_key + "/__placeholder__");
+            this.m_textures[renderer_key + "/__placeholder__"] = CustomTexture.PLACEHOLDER;
+        }
+
+        AddMaterial process_item(int index) {
+            string key;
+            if ((key = keys[index]) == null) {
+                return null;
+            }
+            string file_path = this.m_shader_paths[key];
+            string file = Path.GetFileName(file_path);
+            AddMaterial material;
+            string base_key = Path.GetDirectoryName(key).Replace("\\", "/");
+            string dest_key = base_key.Replace("/__add__/", "/");
+            if (this.m_add_materials.TryGetValue(dest_key, out material)) {
+                return material;
+            }
             try {
-                string base_key = Path.GetDirectoryName(key).Replace("\\", "/");
-                DDPlugin._debug_log(base_key);
-                AddMaterial material = AddMaterial.create(
-                    this.m_shader_paths[key],
-                    base_key,
-                    ShaderInfo.parse(this.m_shader_paths[key]),
-                    this.get_textures_with_key_prefix(base_key)
-                );
-                if (material != null) {
-                    this.m_add_materials[material.Key] = material;
+                if (file == "__shader__.txt") {
+                    if (new FileInfo(file_path).Length > 1024) {
+                        DDPlugin._warn_log($"CustomTextureDict.load_textures_post_process WARNING - '{file_path}' is too large to be a link token file; ignored.");
+                        return null;
+                    }
+                    try {
+                        string link_key = File.ReadAllText(file_path);
+                        if (link_key == key || link_key == base_key || link_key == dest_key) {
+                            DDPlugin._info_log($"* CustomTextureDict.load_textures_post_process WARNING - '{file_path}' references itself; ignored.");
+                            return null;
+                        }
+                        DDPlugin._debug_log($"==> [material link] material/shader key: {key}, link_key: {link_key}");
+                        for (int check_index = 0; check_index < keys.Length; check_index++) {
+                            if (keys[check_index] == link_key) {
+                                if ((material = AddMaterial.clone(process_item(check_index), base_key)) != null) {
+                                    add_texture_placeholder(key);
+                                    return (this.m_add_materials[material.Key] = material);
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        DDPlugin._info_log($"* CustomTextureDict.load_textures_post_process WARNING - exception occured when reading '{file_path}'; ignored.  Exception: " + e);
+                        return null;
+                    }
+                } else if (file == "__shader__.json") {
+                    DDPlugin._debug_log($"==> [custom material] key: {key}");
+                    if ((material = AddMaterial.create(
+                        this.m_shader_paths[key],
+                        base_key,
+                        ShaderInfo.parse(file_path),
+                        this.get_textures_with_key_prefix(base_key)
+                    )) != null) {
+                        add_texture_placeholder(key);
+                        return (this.m_add_materials[material.Key] = material);
+                    }
+                } else {
+                    DDPlugin._warn_log($"* CustomTextureDict.load_textures_post_process WARNING - invalid shader definition file, '{file_path}'");
                 }
             } catch (Exception e) {
-                DDPlugin._warn_log($"* AddMaterial.create WARNING - an exception occurred while creating Unity material using settings in '{this.m_shader_paths[key]}'; this material will be ignored.\nError: " + e);
+                DDPlugin._warn_log($"* CustomTextureDict.load_textures_post_process WARNING - an exception occurred while creating Unity material using settings in '{file_path}'; this material will be ignored.\nError: " + e);
             }
+            return null;
         }
-        DDPlugin._info_log($"Processed {this.m_add_materials} custom materials.");
+
+        DDPlugin._info_log($"Post-processing loaded textures to configure custom materials.");
+        for (int index = 0; index < keys.Length; index++) {
+            process_item(index);    
+        }
+        DDPlugin._info_log($"Processed {this.m_add_materials.Count} custom materials.");
     }
 
 }

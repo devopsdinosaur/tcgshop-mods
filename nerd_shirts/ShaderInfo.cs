@@ -6,6 +6,8 @@ using Newtonsoft.Json;
 public class ShaderInfo {
     [JsonProperty("shader", Required = Required.Always)]
     public string shader;
+    [JsonProperty("renderQueue", Required = Required.Always)]
+    public int renderQueue;
     public class TextureInfo {
         [JsonProperty("path", Required = Required.Always)]
         public string path;
