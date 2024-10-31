@@ -1,0 +1,3 @@
+[submodule "nerd_shirts/files"]
+	path = nerd_shirts/files
+	url = git@github.com:devopsdinosaur/tcgshop-nerd_shirts-files.git
