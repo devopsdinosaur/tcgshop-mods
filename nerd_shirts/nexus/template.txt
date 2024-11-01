@@ -5,7 +5,40 @@ Current Version: [[version]] ([url=https://github.com/[[author]]/[[repo]]/blob/m
 
 [[short_description]]
 
-See the config options below for a complete list of features and how to use them.  If you have ideas or issues see the [i]Source Code and Bug Reporting[/i] section at the bottom of the page.  Thanks!
+This is a very complicated mod and, as it's only v0.0.1, likely has a bug or two.  Just let me know in the Posts section or put in issues on GitHub (see Bug Reporting section below).
+
+This mod was a labor of love, but it was (and will likely continue to be) a lot of work.  If you enjoy my mods then please consider a small donation on Ko-fi to help keep me going.  Just click or scan the QR code below.  Thanks!
+
+[url=https://ko-fi.com/devopsdinosaur/][img]https://i.ibb.co/5cYLp2z/kofi-donate-qrcode.png[/img][/url]
+
+[size=4][b][u]All Users / Getting Started[/u][/b][/size]
+
+This mod is primarily a framework / dependency mod designed to be required by other mods that have developed new textures and looks for the customers.  However, it adds a few decals on its own, just for fun.  Install this mod using the standard installation instructions below.
+
+[size=4][b][u]Adding Other Texture Mods Developed by Mod Authors[/u][/b][/size]
+
+I'm hoping this is fairly straightforward for people, but I am in the process of getting some screenshots and working up a video just to make it easier.
+
+[list=1]
+[*]Download and install this mod using the insttructions below.  It will create a folder under [i]<[[game]]-home>/BepInEx/plugins[/i] called [i][[name]][/i].  This is the folder under which all textures (images and configs) will be stored.  By default, with just this mod installed you should see sub-folders called [i]__shader_bundles__[/i] and [i]eighties_cartoon_shorts[/i].
+[*]Download and extract the contents of the other mod(s).  If the mod does not include instructions then just copy the folder containing sub-folders called [i]Female[/i] and/or [i]Male[/i] to the [i]<[[game]]-home>/BepInEx/plugins/[[name]][/i] folder.
+[*]For example: Let's say the mod is called Fancy Pants.  When you extract the files there should be a folder called something like [i]fancy_pants[/i] and it will contain sub-folders [i]Female[/i] and/or [i]Male[/i].  Copy that [i]fancy_pants[/i] folder into [i]<[[game]]-home>/BepInEx/plugins/[[name]][/i] and start up the game.
+[*]This plugin should pick up any new mod texture folders without any trouble.  Check LogOutput.log for information.
+[/list]
+
+At this point, unless you are planning to create mods or play around with the textures on your own then you should be good to go.  Enjoy!
+
+[size=4][b][u]Mod Developers - Creating Texture Mods[/u][/b][/size]
+
+Before you get started, please note the following:
+
+[b]This mod is a dependency.[/b]  Do [b]*not*[/b] include any of the files from this mod in your own.  All you will need to do is create a sub-folder of the [i]<[[game]]-home>/BepInEx/plugins/[[name]][/i] (as mentioned above) and make this mod a dependency when you release on Nexus.  (I also plan to add mesh support and an API if there is enough interest).
+
+Ok, with the annoying lawyerly stuff out of the way: the real info.  I'm [b]hoping[/b] that creating mods using this framework will be pretty easy.  I put a lot of front-end work into making it pretty much dropping files into folders and distributing.
+
+I'm going to launch this mod and update this portion of the page/guide shortly.  I will create a detailed write-up and hopefully a video (though I am terrible at doing that...)
+
+As always, if you have ideas or issues see the [i]Source Code and Bug Reporting[/i] section at the bottom of the page.  Thanks!
 
 [size=4][b][u]Installation[/u][/b][/size]
 
@@ -17,6 +50,9 @@ See the config options below for a complete list of features and how to use them
 [*]Change configuration options (see below).
 [*]Once you have the settings you want, start the game again and enjoy!
 [/list]
+
+[b]Regular users (non-mod-developers) should not need to worry about config options or hotkeys.[/b]
+
 [[hotkeys]]
 [size=4][b][u]Config Options[/u][/b][/size]
 
