@@ -30,13 +30,9 @@ At this point, unless you are planning to create mods or play around with the te
 
 [size=4][b][u]Mod Developers - Creating Texture Mods[/u][/b][/size]
 
-Before you get started, please note the following:
+Working on a video soon.  For now here is the written guide (work in progress...)
 
-[b]This mod is a dependency.[/b]  Do [b]*not*[/b] include any of the files from this mod in your own.  All you will need to do is create a sub-folder of the [i]<[[game]]-home>/BepInEx/plugins/[[name]][/i] (as mentioned above) and make this mod a dependency when you release on Nexus.  (I also plan to add mesh support and an API if there is enough interest).
-
-Ok, with the annoying lawyerly stuff out of the way: the real info.  I'm [b]hoping[/b] that creating mods using this framework will be pretty easy.  I put a lot of front-end work into making it pretty much dropping files into folders and distributing.
-
-I'm going to launch this mod and update this portion of the page/guide shortly.  I will create a detailed write-up and hopefully a video (though I am terrible at doing that...)
+[url=https://github.com/devopsdinosaur/tcgshop-mods/blob/master/nerd_shirts/docs/mod-developers-guide.md]Nerd Shirts Texture Mod - Developers Guide[/url]
 
 As always, if you have ideas or issues see the [i]Source Code and Bug Reporting[/i] section at the bottom of the page.  Thanks!
 
