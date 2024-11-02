@@ -37,7 +37,7 @@ Broad strokes:
 1. As soon as customers are spawned (currently workers are not affected by this mod--coming soon) the mod checks the replaced texture tree against the Unity object tree within the model.  All matches of the texture are replaced.
 1. This mod will also add materials to renderers (like the decals packaged with the mod) if they are defined under a renderer directory as such: *renderer_000/\_\_add\_\_*.  The properties for these materials are defined in \_\_shader\_\_.json config files.
 
-## Required Tools / Knowledge
+## Suggested Tools / Knowledge
 
 (All of these are free)
 
@@ -56,6 +56,30 @@ A general overview of the process of creating a texture mod for this game is as 
 1. Test out in the game by using the *Force Wear* setting and specifying the modified apparel type(s).
 1. Zip up your mod sub-folder and share with the world!
 
-## Creating a Mod - Getting Started
+## Dumping Game Textures and Exploring File Structure
 
-More coming soon...
+The first step is to dump all of the game textures.  This mod has a configurable built-in hotkey (default Ctrl+F8) to trigger the dump in-game.  The hotkey only works if the mod is is "Test Mode".  Here are the steps:
+
+1. Open the mod cfg file, *devopsdinosaur.tcgshop.nerd_shirts.cfg*, search for "Test Mode - Enabled" and set it to true.
+1. Start the game and load any savegame.
+1. Hit Ctrl + F8.  The mod will take a minute or so (or more, depends on your machine) to dump all of the game textures to your hard drive in the *\<tcgshop-home\>/BepInEx/plugins/nerd_shirts/\_\_dump\_\_* directory.  Text will appear in the upper-left section of the screen to show progress.
+1. The game will close automatically when it's done.
+1. Open up the *\<tcgshop-home\>/BepInEx/plugins/nerd_shirts/\_\_dump\_\_* in either Visual Studio Code (best option) or Windows Explorer.
+1. Take some time to explore the layout and the image files.  As you will see, they are organized by: Gender => Body Part => Renderer => Material.  The directory tree seems redundant and excessively deep, but it exactly mirrors the hierarchy of the game objects.  VSCode combines empty parts of the tree on a single line (as shown in this image)
+![vscode-directory-tree](images/vscode-directory-tree.jpg)  It makes it **so** much easier to navigate the directory trees.  You can also right-click on any directory / file and "Reveal in File Explorer" to open the directory in Windows Explorer.  
+
+## Creating a Simple Texture Replacement Mod
+
+This mini guide will demonstrate making a very simple nerd_shirts "mod" which turns customers' blue jeans purple.
+
+1. Keep your VSCode / Windows Explorer window from the previous section open to *\<tcgshop-home\>/BepInEx/plugins/nerd_shirts/\_\_dump\_\_*.
+1. Open up a new VSCode / Windows Explorer window and "Open folder..." to *\<tcgshop-home\>/BepInEx/plugins/nerd_shirts*.
+1. Create a new folder called *purple_pants* under *\<tcgshop-home\>/BepInEx/plugins/nerd_shirts*.  R-click the empty space in the file explorer window as shown here ![vscode-new-folder](images/vscode-new-folder.jpg)
+1. R-click the new *purple_pants* folder and add a "New Folder..." called *Female*, as follows ![vscode-new-folder-2](images/vscode-new-folder-2.jpg)
+1. Go back to the other (\_\_dump\_\_) workspace / window.
+1. Open the *Female* folder and R-click => Copy the *Jeans_Blue_01_F* directory tree, like this ![vscode-copy-folder](images/vscode-paste-folder.jpg)
+1. Tab back to the (purple_pants) workspace and R-click the *Female* directory and => Paste into the *Female* directory like this ![vscode-paste-folder](images/vscode-paste-folder.jpg)
+1. Now you should have a directory tree that looks like this ![vscode-jeans-folder](images/vscode-jeans-folder.jpg)
+1. At this point you now have a "mod" folder which tells nerd_shirts to replace all of the female customers' blue jeans with the textures in your directory tree.  But it currently would just replace them with the exact same textures.  So let's change one of them to get that purple tint!
+1. 
+
