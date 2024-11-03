@@ -35,7 +35,7 @@ public static class PluginInfo {
 [BepInPlugin(PluginInfo.GUID, PluginInfo.TITLE, PluginInfo.VERSION)]
 public class ContinueButtonPlugin : DDPlugin {
 	private Harmony m_harmony = new Harmony(PluginInfo.GUID);
-	private static bool m_is_first_load = true;
+	//private static bool m_is_first_load = true;
 
 	private void Awake() {
 		logger = this.Logger;

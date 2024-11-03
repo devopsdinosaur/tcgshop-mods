@@ -70,7 +70,7 @@ public class MindControlPlugin : DDPlugin {
 		private bool m_is_frozen = false;
 		private float m_original_speed = 0f;
 		private float m_original_animation_speed = 0f;
-		private float m_base_speed = 1f;
+		//private float m_base_speed = 1f;
 
 		public static class DecisionParams {
 			// Each of these max_time_xxx's represent the amount of time a customer

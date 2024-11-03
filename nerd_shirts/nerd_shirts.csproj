@@ -16,15 +16,15 @@
     <ItemGroup>
       <AllFiles Include="$(TargetDir)**\*.*" Exclude="$(TargetDir)**\*.pdb" />
 	    <NexusFiles Include="$(ProjectDir)\nexus\**\*.*" />
-      <ExtraFiles Include="$(ProjectDir)\files\**\*.*" Exclude="$(ProjectDir)\files\**\*.xcf;$(ProjectDir)\files\.git*" />
     </ItemGroup>
     <Delete Files="$(BepInExPath)\plugins\nexus\$(AssemblyName)\generated.txt" />
-	  <Copy SourceFiles="@(AllFiles);@(ExtraFiles)" DestinationFolder="$(GamePath)\BepInEx\plugins\%(RecursiveDir)" />
-	  <MakeDir Directories="$(GamePath)\BepInEx\plugins\nexus\$(AssemblyName)" />
+	  <Copy SourceFiles="@(AllFiles)" DestinationFolder="$(GamePath)\BepInEx\plugins\%(RecursiveDir)" />
+    <MakeDir Directories="$(GamePath)\BepInEx\plugins\nexus\$(AssemblyName)" />
 	  <Copy SourceFiles="@(NexusFiles)" DestinationFolder="$(GamePath)\BepInEx\plugins\nexus\$(AssemblyName)\%(RecursiveDir)" />
     <Delete Files="$(ProjectDir)\bin\$(TargetName).zip" />
-    <Copy SourceFiles="@(AllFiles);@(ExtraFiles)" DestinationFolder="$(TargetDir)..\Release\%(RecursiveDir)"></Copy>
-    <ZipDirectory SourceDirectory="$(TargetDir)..\Release" DestinationFile="$(ProjectDir)\bin\$(TargetName).zip" />
-    <RemoveDir Directories="$(TargetDir)..\Release" />
+    <Copy SourceFiles="@(AllFiles)" DestinationFolder="$(TargetDir)..\Release\$(ProjectName)\%(RecursiveDir)"></Copy>
+    <Exec Command="python tools/copy-and-zip-mods.py $(TargetDir)..\Release" />
+    <ZipDirectory SourceDirectory="$(TargetDir)..\Release\$(ProjectName)" DestinationFile="$(ProjectDir)\bin\$(TargetName).zip" />
+    <!-- RemoveDir Directories="$(TargetDir)..\Release" / -->
   </Target>
 </Project>
