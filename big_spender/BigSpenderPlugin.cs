@@ -13,7 +13,7 @@ public static class PluginInfo {
 	public const string NAME = "big_spender";
 	public const string SHORT_DESCRIPTION = "No more single booster purchases!  Adjust customers' chance to buy and amount of items they pick up.";
 
-	public const string VERSION = "0.0.2";
+	public const string VERSION = "0.0.3";
 
 	public const string AUTHOR = "devopsdinosaur";
 	public const string GAME_TITLE = "TCG Shop Simulator";
@@ -169,7 +169,9 @@ public class BigSpenderPlugin : DDPlugin {
 	class HarmonyPatch_Customer_TakeItemFromShelf {
 		private static bool Prefix(Customer __instance, ref bool ___m_IsInsideShop, Shelf ___m_CurrentShelf, ShelfCompartment ___m_CurrentItemCompartment, bool ___m_IsSmelly, List<Item> ___m_ItemInBagList, List<InteractableCard3d> ___m_CardInBagList, ref int ___m_FailFindItemAttemptCount, ref bool ___m_HasTookItemFromShelf) {
 			try {
-				//DDPlugin._debug_log("TakeItemFromShelf");
+				if (!Settings.m_enabled.Value) {
+					return true;
+				}
 				___m_IsInsideShop = true;
 				if (!___m_CurrentShelf) {
 					__instance.m_CurrentState = ECustomerState.Idle;
@@ -243,7 +245,9 @@ public class BigSpenderPlugin : DDPlugin {
 	class HarmonyPatch_Customer_TakeCardFromShelf {
 		private static bool Prefix(Customer __instance, ref bool ___m_IsInsideShop, CardShelf ___m_CurrentCardShelf, InteractableCardCompartment ___m_CurrentCardCompartment, List<Item> ___m_ItemInBagList, List<InteractableCard3d> ___m_CardInBagList, ref int ___m_FailFindItemAttemptCount, ref bool ___m_HasTookItemFromShelf, ref bool ___m_HasTookCardFromShelf) {
 			try {
-				//DDPlugin._debug_log("TakeCardFromShelf");
+				if (!Settings.m_enabled.Value) {
+					return true;
+				}
 				___m_IsInsideShop = true;
 				if (!___m_CurrentCardShelf) {
 					__instance.m_CurrentState = ECustomerState.Idle;
