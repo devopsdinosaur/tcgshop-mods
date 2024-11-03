@@ -44,6 +44,7 @@ Broad strokes:
 * **GIMP**: This is probably the only tool you really need if you're just modifying or creating decal PNGs.  I am terrible at anything visual, but GIMP is pretty easy to use for the simple stuff and really good for dealing with PNG layers.
 * **Visual Studio Code**: This one is not needed, but it is really nice to have for versatility in navigating the deep directory trees, editing JSON files, and a variety of other personalizable components.
 * **Unity**: A cursory knowledge of the workings of Unity will really help.  You definitely don't need to follow the tutorials that show you how to use the editor and all that.  It's more the concept of GameObjects, Meshes, Renderers, Materials, and Shaders that really helps.  It is worth the effort to download and install Unity to just play around with making a GameObject and changing the materials/shaders, etc.
+* **Notepad++**: Personally I think VScode beats this one in everything, but lots of folks love it, and obviously it is a million times better than Notepad (cringe).  It is a good tool and works great for just watching live log files.
 
 ## Creating a Mod - Overview
 
@@ -74,12 +75,46 @@ This mini guide will demonstrate making a very simple nerd_shirts "mod" which tu
 
 1. Keep your VSCode / Windows Explorer window from the previous section open to *\<tcgshop-home\>/BepInEx/plugins/nerd_shirts/\_\_dump\_\_*.
 1. Open up a new VSCode / Windows Explorer window and "Open folder..." to *\<tcgshop-home\>/BepInEx/plugins/nerd_shirts*.
-1. Create a new folder called *purple_pants* under *\<tcgshop-home\>/BepInEx/plugins/nerd_shirts*.  R-click the empty space in the file explorer window as shown here ![vscode-new-folder](images/vscode-new-folder.jpg)
-1. R-click the new *purple_pants* folder and add a "New Folder..." called *Female*, as follows ![vscode-new-folder-2](images/vscode-new-folder-2.jpg)
+1. Create a new folder called *purple_pants* under *\<tcgshop-home\>/BepInEx/plugins/nerd_shirts*.  R-click the empty space in the file explorer window as shown here:
+* ![vscode-new-folder](images/vscode-new-folder.jpg)
+1. R-click the new *purple_pants* folder and add a "New Folder..." called *Female*, as follows: 
+* ![vscode-new-folder-2](images/vscode-new-folder-2.jpg)
 1. Go back to the other (\_\_dump\_\_) workspace / window.
-1. Open the *Female* folder and R-click => Copy the *Jeans_Blue_01_F* directory tree, like this ![vscode-copy-folder](images/vscode-paste-folder.jpg)
-1. Tab back to the (purple_pants) workspace and R-click the *Female* directory and => Paste into the *Female* directory like this ![vscode-paste-folder](images/vscode-paste-folder.jpg)
-1. Now you should have a directory tree that looks like this ![vscode-jeans-folder](images/vscode-jeans-folder.jpg)
+1. Open the *Female* folder and R-click => Copy the *Jeans_Blue_01_F* directory tree, like this:
+* ![vscode-copy-folder](images/vscode-paste-folder.jpg)
+1. Tab back to the (purple_pants) workspace and R-click the *Female* directory and => Paste into the *Female* directory like this:
+* ![vscode-paste-folder](images/vscode-paste-folder.jpg)
+1. Now you should have a directory tree that looks like this: 
+* ![vscode-jeans-folder](images/vscode-jeans-folder.jpg)
 1. At this point you now have a "mod" folder which tells nerd_shirts to replace all of the female customers' blue jeans with the textures in your directory tree.  But it currently would just replace them with the exact same textures.  So let's change one of them to get that purple tint!
-1. 
+1. Navigate down to the *purple_pants\Female\Jeans_01_F Blue\Modular\Lower_Body\Jeans\Jeans_LOD0\renderer_000\material_000* directory and R-click => "Reveal in File Explorer" to open it up in Windows Explorer.
+1. In Windows Explorer, R-click "_Base_Color.png" => Open with => GIMP.
+1. If you don't know GIMP (which I really don't, to be honest) it can be almost as intimidating as Photoshop or AutoCAD, but luckily it's really easy to figure out most things with Google... and we're just changing the color tint for now.
+1. In the menu, click Colors => Hue-Chroma... as shown here:
+* ![gimp-colors-hue](images/gimp-colors-hue.jpg)
+1. Drag the "Hue" bar to the right a ways until the pants turn a nice purple and click OK.
+1. Hit Ctrl + Shift + E (or File => Export As...) to export the image.  Hit Enter (or click "Export") and confirm that you want to "Replace" the original image.  Then click "Export" again on the last popup to *finally* actually export the file =)
+1. So now you've got a new pair of purple pants to show off in-game.
+1. There are three other handy settings for testing textures/materials with the Nerd Shirts Mod.  We'll use them now.
+1. Open up the mod config file (*\<tcgshop-home\>/BepInEx/config/devopsdinosaur.tcgshop.nerd_shirts.cfg*) and search for "Force Wear".  Reading the description text you can see it is specifically designed for testing textures as you add/modify them.
+1. Set ```Force Wear = Jeans_Blue_01```  You might be asking, "Why is it not 'Jeans_Blue_01_F', like in the directory structure.  Why?  Because the "Force Wear" setting specifies the name of the "apparel" and not the name of a texture that belongs to that apparel item.
+1. Save the cfg file and start up the game and load any savegame.  Hit Escape to pause, tab out, and open up *\<tcgshop-home\>/BepInEx/LogOutput.log* in VSCode or Notepad++.  Search for "Force Wear", and you'll see a log entry that gives a complete list of all the Apparel items grouped by associated Gender and Body Part.  (Note that I added a placeholder for Non-binary gender type because I plan to add that capability in the near future, but there is nothing in there yet.)  Anyway, when you are testing your textures later, this will be the list you'll use to put the clothes on the customers.  In the list in your log you should see this:
+
+```
+++ Female: Legs ++
+
+Jeans_Baggy_Black
+Jeans_Baggy_Blue
+Jeans_Black_01
+Jeans_Blue_01 [** FORCE **]
+Jogging_Pants_01
+Skirt_Gray
+```
+
+1. This indicates that the mod is attempting to force the female customers to wear the blue jeans, where possible.  I say "where possible" because not all customer "presets" (the predesigned model templates) support wearing all types of apparel.  The jeans seem to work with most (and you'll notice in the log that the Male: Legs section also indicates the dudes will be sporting jeans as well, cuz it's the same name =), but things like the Skirt_Gray only work on one or two presets.
+1. So that gets us to the next feature of this mod.  You're thinking now, "Do I have to wait around for a customer to spawn that happens to support the apparel I'm testing?"  The answer is no! (would have been a real letdown and kinda embarassing for me if the answer had been different...)
+1. Tab back to the game and un-pause.  If you had customers in your shop when you saved then you may just have some folks with purple pants hanging around.  But lets say you don't or you're testing to see if your textures work with ALL the presets.  Hit Ctrl + Z and watch the purple-pantsded(?) zombie army appear from nowhere!  This hotkey causes all of the customer presets to spawn on the street outside of your shop.  They don't walk, just do their creepy sync'd up idle animations and hold all their random stuff, like this:
+* ![purple-pants-zombie-army](images/purple-pants-zombie-army.jpg)
+1. Hit Ctrl + X to despawn all the zombies.  You can spawn and despawn them as much as you want.  You can also hit Ctrl + Z to spawn them on top of one another and see cool multi-headed animation effects (though with old dinosaur [pun intended] CPUs like mine it will start killing framerate).
+1. So there you go.  You've made your first nerd_shirts "mod"!  Go forth and make lots of cool ones.  I can't wait to see them!  But you might also want to read the next section on adding materials to do even more =)
 
