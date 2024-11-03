@@ -66,8 +66,8 @@ The first step is to dump all of the game textures.  This mod has a configurable
 1. Hit Ctrl + F8.  The mod will take a minute or so (or more, depends on your machine) to dump all of the game textures to your hard drive in the *\<tcgshop-home\>/BepInEx/plugins/nerd_shirts/\_\_dump\_\_* directory.  Text will appear in the upper-left section of the screen to show progress.
 1. The game will close automatically when it's done.
 1. Open up the *\<tcgshop-home\>/BepInEx/plugins/nerd_shirts/\_\_dump\_\_* in either Visual Studio Code (best option) or Windows Explorer.
-1. Take some time to explore the layout and the image files.  As you will see, they are organized by: Gender => Body Part => Renderer => Material.  The directory tree seems redundant and excessively deep, but it exactly mirrors the hierarchy of the game objects.  VSCode combines empty parts of the tree on a single line (as shown in this image)
-![vscode-directory-tree](images/vscode-directory-tree.jpg)  It makes it **so** much easier to navigate the directory trees.  You can also right-click on any directory / file and "Reveal in File Explorer" to open the directory in Windows Explorer.  
+1. Take some time to explore the layout and the image files.  As you will see, they are organized by: Gender => Body Part => Renderer => Material.  The directory tree seems redundant and excessively deep, but it exactly mirrors the hierarchy of the game objects.  VSCode combines empty parts of the tree on a single line (as shown in this image):
+* ![vscode-directory-tree](images/vscode-directory-tree.jpg)  It makes it **so** much easier to navigate the directory trees.  You can also right-click on any directory / file and "Reveal in File Explorer" to open the directory in Windows Explorer.  
 
 ## Creating a Simple Texture Replacement Mod
 
