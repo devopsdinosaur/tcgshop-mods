@@ -27,12 +27,16 @@ A *very* brief overview of Unity objects to explain the terms to the neophytes:
 
 ## How this Mod Works
 
-A quick explanation of how this mod makes it a little easier to understand how to make your own texture mods.
+Overview:
+
+This mod loads any number of **Boosters**, which are represented by individual sub-folders of the *\<game\>/BepInEx/plugins/nerd_shirts* folder.  Each **Booster** can replace or add textures and will work alongside others, allowing mod developers to release Nexus mods containing boosters.  The Nerd Shirts loader will print warnings to the LogOutput.log file if there are conflicts.  More on **Boosters** later.
+
+A quick explanation of how this mod makes it a little easier to understand how to make your own texture boosters.
 
 Broad strokes:
-1. When the game first launches, the mod scans the *\<game\>/BepInEx/plugins/nerd_shirts* folder for all sub-folders, which it will treat as mods (with the exception of those beginning with '_', i.e. special dirs [explained later in the Advanced section]).
-1. Each *mod* dir must have the same directory structure as the *__dump__* dir (explained later in the Creating a Mod sections).  The *__dump__* dir is just what it seems: a dump of the tree structure of the Unity objects in the game.
-1. If a mod wants to say change the design on the "crop top" shirt for the female customers then the *mod* dir would include the ```Female\Crop_Top_01\Modular\Upper_Body\Crop_Top_01\Crop_Top_01_LOD0\renderer_000\material_000``` directory tree and contain the PNG image files that are modified to change the texture on the shirt.
+1. When the game first launches, the mod scans the *\<game\>/BepInEx/plugins/nerd_shirts* folder for all sub-folders, which it will treat as boosters (with the exception of those beginning with '_', i.e. special dirs [explained later in the Advanced section]).
+1. Each *booster* dir must have the same directory structure as the *__dump__* dir (explained later in the Creating a Booster sections).  The *__dump__* dir is just what it seems: a dump of the tree structure of the Unity objects in the game.
+1. If a mod wants to say change the design on the "crop top" shirt for the female customers then the *booster* dir would include the ```Female\Crop_Top_01\Modular\Upper_Body\Crop_Top_01\Crop_Top_01_LOD0\renderer_000\material_000``` directory tree and contain the PNG image files that are modified to change the texture on the shirt.
 1. The textures (and shader config JSON files) are loaded at game launch to be used when customer/worker models are instantiated.
 1. As soon as customers are spawned (currently workers are not affected by this mod--coming soon) the mod checks the replaced texture tree against the Unity object tree within the model.  All matches of the texture are replaced.
 1. This mod will also add materials to renderers (like the decals packaged with the mod) if they are defined under a renderer directory as such: *renderer_000/\_\_add\_\_*.  The properties for these materials are defined in \_\_shader\_\_.json config files.
@@ -46,16 +50,16 @@ Broad strokes:
 * **Unity**: A cursory knowledge of the workings of Unity will really help.  You definitely don't need to follow the tutorials that show you how to use the editor and all that.  It's more the concept of GameObjects, Meshes, Renderers, Materials, and Shaders that really helps.  It is worth the effort to download and install Unity to just play around with making a GameObject and changing the materials/shaders, etc.
 * **Notepad++**: Personally I think VScode beats this one in everything, but lots of folks love it, and obviously it is a million times better than Notepad (cringe).  It is a good tool and works great for just watching live log files.
 
-## Creating a Mod - Overview
+## Creating a Booster - Overview
 
-A general overview of the process of creating a texture mod for this game is as follows:
+A general overview of the process of creating a booster for this game is as follows:
 
 1. Dump the game textures using this mod.
-1. Create a mod sub-folder under the plugins/nerd_shirts directory.
-1. Copy one of the dumped directory trees into your mod directory.  Delete all but the textures you wish to modify.
+1. Create a booster sub-folder under the plugins/nerd_shirts directory.
+1. Copy one of the dumped directory trees into your booster directory.  Delete all but the textures you wish to modify.
 1. Add materials / textures using the \_\_add\_\_ and \_\_shader\_\_.json, if desired.
 1. Test out in the game by using the *Force Wear* setting and specifying the modified apparel type(s).
-1. Zip up your mod sub-folder and share with the world!
+1. Zip up your booster sub-folder and share with the world!
 
 ## Dumping Game Textures and Exploring File Structure
 
@@ -69,9 +73,9 @@ The first step is to dump all of the game textures.  This mod has a configurable
 1. Take some time to explore the layout and the image files.  As you will see, they are organized by: Gender => Body Part => Renderer => Material.  The directory tree seems redundant and excessively deep, but it exactly mirrors the hierarchy of the game objects.  VSCode combines empty parts of the tree on a single line (as shown in this image):
 * ![vscode-directory-tree](images/vscode-directory-tree.jpg)  It makes it **so** much easier to navigate the directory trees.  You can also right-click on any directory / file and "Reveal in File Explorer" to open the directory in Windows Explorer.  
 
-## Creating a Simple Texture Replacement Mod
+## Creating a Simple Texture Replacement Booster
 
-This mini guide will demonstrate making a very simple nerd_shirts "mod" which turns customers' blue jeans purple.
+This mini guide will demonstrate making a very simple nerd_shirts booster which turns customers' blue jeans purple.
 
 1. Keep your VSCode / Windows Explorer window from the previous section open to *\<tcgshop-home\>/BepInEx/plugins/nerd_shirts/\_\_dump\_\_*.
 1. Open up a new VSCode / Windows Explorer window and "Open folder..." to *\<tcgshop-home\>/BepInEx/plugins/nerd_shirts*.
@@ -86,7 +90,7 @@ This mini guide will demonstrate making a very simple nerd_shirts "mod" which tu
 * ![vscode-paste-folder](images/vscode-paste-folder.jpg)
 1. Now you should have a directory tree that looks like this: 
 * ![vscode-jeans-folder](images/vscode-jeans-folder.jpg)
-1. At this point you now have a "mod" folder which tells nerd_shirts to replace all of the female customers' blue jeans with the textures in your directory tree.  But it currently would just replace them with the exact same textures.  So let's change one of them to get that purple tint!
+1. At this point you now have a booster folder which tells nerd_shirts to replace all of the female customers' blue jeans with the textures in your directory tree.  But it currently would just replace them with the exact same textures.  So let's change one of them to get that purple tint!
 1. Navigate down to the *purple_pants\Female\Jeans_01_F Blue\Modular\Lower_Body\Jeans\Jeans_LOD0\renderer_000\material_000* directory and R-click => "Reveal in File Explorer" to open it up in Windows Explorer.
 1. In Windows Explorer, R-click "_Base_Color.png" => Open with => GIMP.
 1. If you don't know GIMP (which I really don't, to be honest) it can be almost as intimidating as Photoshop or AutoCAD, but luckily it's really easy to figure out most things with Google... and we're just changing the color tint for now.
@@ -116,5 +120,5 @@ Skirt_Gray
 1. Tab back to the game and un-pause.  If you had customers in your shop when you saved then you may just have some folks with purple pants hanging around.  But lets say you don't or you're testing to see if your textures work with ALL the presets.  Hit Ctrl + Z and watch the purple-pantsded(?) zombie army appear from nowhere!  This hotkey causes all of the customer presets to spawn on the street outside of your shop.  They don't walk, just do their creepy sync'd up idle animations and hold all their random stuff, like this:
 * ![purple-pants-zombie-army](images/purple-pants-zombie-army.jpg)
 1. Hit Ctrl + X to despawn all the zombies.  You can spawn and despawn them as much as you want.  You can also hit Ctrl + Z to spawn them on top of one another and see cool multi-headed animation effects (though with old dinosaur [pun intended] CPUs like mine it will start killing framerate).
-1. So there you go.  You've made your first nerd_shirts "mod"!  Go forth and make lots of cool ones.  I can't wait to see them!  But you might also want to read the next section on adding materials to do even more =)
+1. So there you go.  You've made your first nerd_shirts booster!  Go forth and make lots of cool ones.  I can't wait to see them!  But you might also want to read the next section on adding materials to do even more =)
 
