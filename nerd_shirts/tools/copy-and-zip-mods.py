@@ -5,20 +5,20 @@ import sys
 import re
 import shutil
 
+PROJECT_NAME = "nerd_shirts"
 THIS_DIR = os.path.realpath(os.path.dirname(__file__))
 BASE_DIR = os.path.realpath(os.path.join(THIS_DIR, ".."))
-MODS_DIR = os.path.join(BASE_DIR, "files/nerd_shirts/mods")
+MODS_DIR = os.path.join(BASE_DIR, "files", PROJECT_NAME, "mods")
 f = open(os.path.join(THIS_DIR, "..", "..", "solution_private.targets"), "r")
 data = f.read()
 f.close()
-DEST_DIR = os.path.join(re.compile("<GamePath>([^<]+)</GamePath>").search(data).group(1), "BepInEx/plugins/nerd_shirts")
-STAGE_DIR = os.path.join(DEST_DIR + "/tmp/nerd_shirts")
+DEST_DIR = os.path.join(re.compile("<GamePath>([^<]+)</GamePath>").search(data).group(1), "BepInEx/plugins/" + PROJECT_NAME)
+STAGE_DIR = os.path.join(DEST_DIR, "tmp", PROJECT_NAME)
 BIN_DIR = os.path.join(BASE_DIR, "bin")
 ARCHIVE_FORMAT = BIN_DIR + "/devopsdinosaur.tcgshop.%(name)s"
 RX_MOD_KEYED_FILE = re.compile("^__mod_(.*?)__(.*?)$")
 VALID_EXTENSIONS = (".json", ".txt", ".png", "")
 PACKAGED_WITH_MAIN_MOD = ("base", "eighties_cartoon_shirts")
-RELEASE_DIR = sldfksdf
 
 def log(text):
     sys.stdout.write(text + "\n")
@@ -82,14 +82,27 @@ def fix_dir(directory):
             if (file.startswith("__shader__.")):
                 os.rename(full_path, os.path.join(directory, "__mod_base__" + file))
 
+def zip_dir(name, src_dir):
+    dst = ARCHIVE_FORMAT % locals()
+    log("Zipping %(src_dir)s => %(dst)s.zip" % locals())
+    shutil.make_archive(dst, "zip", src_dir)
+
 def main(argv):
+    argc = len(argv)
+    if (argc < 2):
+        log("usage: %s <release-dir>" % argv[0])
+        return 1
+    base_release_dir = argv[1]
+    release_dir = os.path.join(base_release_dir, PROJECT_NAME)
+    os.makedirs(release_dir, exist_ok = True)
     # fix_dir(MODS_DIR)
     file_lists = add_path_to_file_lists(MODS_DIR)
     all_files = file_lists.get('__all__', [])
     for name, files in file_lists.items():
         if (name == "__all__"):
             continue
-        dest_root = os.path.join(DEST_DIR, name)
+        is_packaged_with_main = (name in PACKAGED_WITH_MAIN_MOD)
+        dest_root = os.path.join((DEST_DIR if (not is_packaged_with_main) else release_dir), name)
         shutil.rmtree(dest_root, ignore_errors = True)
         complete_files = list(all_files)
         complete_files.extend(files)
@@ -97,10 +110,19 @@ def main(argv):
             dst_path = os.path.join(dest_root, file['dst'])
             os.makedirs(os.path.dirname(dst_path), exist_ok = True)
             shutil.copyfile(file['src'], dst_path)
+        if (is_packaged_with_main):
+            continue
         os.makedirs(STAGE_DIR, exist_ok = True)
         shutil.move(dest_root, STAGE_DIR)
-        shutil.make_archive(ARCHIVE_FORMAT % locals(), "zip", STAGE_DIR)
+        zip_dir(name, STAGE_DIR)
         shutil.move(os.path.join(STAGE_DIR, name), DEST_DIR)
+    zip_dir(PROJECT_NAME, base_release_dir)
+    for name in os.listdir(release_dir):
+        full_path = os.path.join(release_dir, name)
+        if (not os.path.isdir(full_path)):
+            continue
+        shutil.rmtree(os.path.join(DEST_DIR, name), ignore_errors = True)
+        shutil.move(full_path, DEST_DIR)
     shutil.rmtree(STAGE_DIR, ignore_errors = True)
     return 0
 
