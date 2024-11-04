@@ -24,7 +24,7 @@
     <Delete Files="$(ProjectDir)\bin\$(TargetName).zip" />
     <Copy SourceFiles="@(AllFiles)" DestinationFolder="$(TargetDir)..\Release\$(ProjectName)\%(RecursiveDir)"></Copy>
     <Exec Command="python tools/copy-and-zip-mods.py $(TargetDir)..\Release" />
-    <ZipDirectory SourceDirectory="$(TargetDir)..\Release\$(ProjectName)" DestinationFile="$(ProjectDir)\bin\$(TargetName).zip" />
-    <!-- RemoveDir Directories="$(TargetDir)..\Release" / -->
+    <!-- <ZipDirectory SourceDirectory="$(TargetDir)..\Release\$(ProjectName)" DestinationFile="$(ProjectDir)\bin\$(TargetName).zip" /> -->
+    <!-- <RemoveDir Directories="$(TargetDir)..\Release" /> -->
   </Target>
 </Project>
