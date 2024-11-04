@@ -13,26 +13,26 @@ This mod was a labor of love, but it was (and will likely continue to be) a lot 
 
 [size=4][b][u]All Users / Getting Started[/u][/b][/size]
 
-This mod is primarily a framework / dependency mod designed to be required by other mods that have developed new textures and looks for the customers.  However, it adds a few decals on its own, just for fun.  Install this mod using the standard installation instructions below.
+This mod is primarily a framework / dependency mod designed to be required by other mods (A.K.A Boosters) that have developed new textures and looks for the customers.  However, it adds a few decals on its own, just for fun.  Install this mod using the standard installation instructions below.
 
-[size=4][b][u]Adding Other Texture Mods Developed by Mod Authors[/u][/b][/size]
+[size=4][b][u]Adding Other Texture "Booster" Mods Developed by Mod Authors[/u][/b][/size]
 
 I'm hoping this is fairly straightforward for people, but I am in the process of getting some screenshots and working up a video just to make it easier.
 
 [list=1]
-[*]Download and install this mod using the insttructions below.  It will create a folder under [i]<[[game]]-home>/BepInEx/plugins[/i] called [i][[name]][/i].  This is the folder under which all textures (images and configs) will be stored.  By default, with just this mod installed you should see sub-folders called [i]__shader_bundles__[/i] and [i]eighties_cartoon_shorts[/i].
+[*]Download and install this mod using the insttructions below.  It will create a folder under [i]<[[game]]-home>/BepInEx/plugins[/i] called [i][[name]][/i].  This is the folder under which all textures (images and configs) will be stored.  By default, with just this mod installed you should see sub-folders called [i]__shader_bundles__[/i], [i]base[/i], and [i]eighties_cartoon_shorts[/i].
 [*]Download and extract the contents of the other mod(s).  If the mod does not include instructions then just copy the folder containing sub-folders called [i]Female[/i] and/or [i]Male[/i] to the [i]<[[game]]-home>/BepInEx/plugins/[[name]][/i] folder.
 [*]For example: Let's say the mod is called Fancy Pants.  When you extract the files there should be a folder called something like [i]fancy_pants[/i] and it will contain sub-folders [i]Female[/i] and/or [i]Male[/i].  Copy that [i]fancy_pants[/i] folder into [i]<[[game]]-home>/BepInEx/plugins/[[name]][/i] and start up the game.
 [*]This plugin should pick up any new mod texture folders without any trouble.  Check LogOutput.log for information.
 [/list]
 
-At this point, unless you are planning to create mods or play around with the textures on your own then you should be good to go.  Enjoy!
+At this point, unless you are planning to create booster mods or play around with the textures on your own then you should be good to go.  Enjoy!
 
-[size=4][b][u]Mod Developers - Creating Texture Mods[/u][/b][/size]
+[size=4][b][u]Mod Developers - Creating Boosters[/u][/b][/size]
 
 Working on a video soon.  For now here is the written guide (work in progress...)
 
-[url=https://github.com/devopsdinosaur/tcgshop-mods/blob/master/nerd_shirts/docs/mod-developers-guide.md]Nerd Shirts Texture Mod - Developers Guide[/url]
+[url=https://github.com/devopsdinosaur/tcgshop-mods/blob/master/nerd_shirts/docs/mod-developers-guide.md]Nerd Shirts Mod - Booster Developers Guide[/url]
 
 As always, if you have ideas or issues see the [i]Source Code and Bug Reporting[/i] section at the bottom of the page.  Thanks!
 
@@ -47,7 +47,7 @@ As always, if you have ideas or issues see the [i]Source Code and Bug Reporting[
 [*]Once you have the settings you want, start the game again and enjoy!
 [/list]
 
-[b]Regular users (non-mod-developers) should not need to worry about config options or hotkeys.[/b]
+[b]Regular users (non-booster-developers) should not need to worry about config options or hotkeys.[/b]
 
 [[hotkeys]]
 [size=4][b][u]Config Options[/u][/b][/size]

@@ -1,4 +1,4 @@
-﻿# Nerd Shirts Texture Mod - Developers Guide
+﻿# Nerd Shirts Mod - Booster Developers Guide
 
 ## Legal
 
