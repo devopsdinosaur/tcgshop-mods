@@ -1,0 +1,34 @@
+﻿
+[size=4][b][u]Description[/u][/b][/size]
+
+[[short_description]]
+
+[size=4][b][u]Installation[/u][/b][/size]
+
+[list=1]
+[*][url=https://www.nexusmods.com/tcgcardshopsimulator/mods/8]Install BepInEx[/url]﻿
+[*][url=https://www.nexusmods.com/tcgcardshopsimulator/mods/395]Install Nerd Shirts[/url]
+[*]Download and extract this mod.
+[*]Copy the extracted files to [i]<[[game]]-home>/BepInEx/plugins[/i] folder.
+[*]Start the game and enjoy!.
+[/list]
+
+[size=4][b][u]Mod Developers - Creating Boosters[/u][/b][/size]
+
+Use this booster as a template and check out the guide below for info!
+
+[url=https://github.com/devopsdinosaur/tcgshop-mods/blob/master/nerd_shirts/docs/mod-developers-guide.md]Nerd Shirts Mod - Booster Developers Guide[/url]
+
+As always, if you have ideas or issues see the [i]Source Code and Bug Reporting[/i] section at the bottom of the page.  Thanks!
+
+[size=4][b][u]Source Code and Bug Reporting[/u][/b][/size]
+
+All of my mods are open source on GitHub here: [url=https://github.com/[[author]]/[[repo]]]https://github.com/[[author]]/[[repo]][/url]
+Please let me know in the Posts section if you have problems or ideas for new mods/features.  Or, even better, you can submit issues directly on the GitHub page [url=https://github.com/[[author]]/[[repo]]/issues]here[/url]).
+
+[b]PSA[/b] - It's been hard to find the time to create new mods and support the ones I've made.  If you like my mods, please consider a small tip (any amount) on Ko-fi to help me convince my wife that this modding stuff is worth my time =)  Just scan the QR code below with your phone or click it to get started.
+
+[url=https://ko-fi.com/devopsdinosaur/][img]https://i.ibb.co/5cYLp2z/kofi-donate-qrcode.png[/img][/url]
+
+Thanks a ton, and enjoy the mods!!
+dd

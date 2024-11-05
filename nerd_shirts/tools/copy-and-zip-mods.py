@@ -13,7 +13,8 @@ f = open(os.path.join(THIS_DIR, "..", "..", "solution_private.targets"), "r")
 data = f.read()
 f.close()
 DEST_DIR = os.path.join(re.compile("<GamePath>([^<]+)</GamePath>").search(data).group(1), "BepInEx/plugins/" + PROJECT_NAME)
-STAGE_DIR = os.path.join(DEST_DIR, "tmp", PROJECT_NAME)
+ZIP_DIR = os.path.join(DEST_DIR, "tmp")
+STAGE_DIR = os.path.join(ZIP_DIR, PROJECT_NAME)
 BIN_DIR = os.path.join(BASE_DIR, "bin")
 ARCHIVE_FORMAT = BIN_DIR + "/devopsdinosaur.tcgshop.%(name)s"
 RX_MOD_KEYED_FILE = re.compile("^__mod_(.*?)__(.*?)$")
@@ -114,7 +115,7 @@ def main(argv):
             continue
         os.makedirs(STAGE_DIR, exist_ok = True)
         shutil.move(dest_root, STAGE_DIR)
-        zip_dir(name, STAGE_DIR)
+        zip_dir(name, ZIP_DIR)
         shutil.move(os.path.join(STAGE_DIR, name), DEST_DIR)
     zip_dir(PROJECT_NAME, base_release_dir)
     for name in os.listdir(release_dir):
@@ -123,7 +124,7 @@ def main(argv):
             continue
         shutil.rmtree(os.path.join(DEST_DIR, name), ignore_errors = True)
         shutil.move(full_path, DEST_DIR)
-    shutil.rmtree(STAGE_DIR, ignore_errors = True)
+    shutil.rmtree(ZIP_DIR, ignore_errors = True)
     return 0
 
 if (__name__ == "__main__"):

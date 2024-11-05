@@ -10,7 +10,7 @@ public static class PluginInfo {
 
 	public const string TITLE = "Nerd Shirts";
 	public const string NAME = "nerd_shirts";
-	public const string SHORT_DESCRIPTION = "Framework mod for allowing the replacement, modification, and addition of all character model textures.  By itself this mod adds 80s cartoon decals.  Create your own and share them!  Mesh and model support coming soon.";
+	public const string SHORT_DESCRIPTION = "Framework mod for allowing 'booster' mods to replace, modify, and/or add character model textures.  By itself this mod adds 80s cartoon decals.  Create your own and share them!  Mesh and model support coming soon.";
 
 	public const string VERSION = "0.0.2";
 
