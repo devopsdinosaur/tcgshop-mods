@@ -70,9 +70,20 @@ public class CustomCustomersPlugin : DDPlugin {
 	class ExactChange {
 		[HarmonyPatch(typeof(Customer), "GetRandomPayAmount")]
 		class HarmonyPatch_Customer_GetRandomPayAmount {
-			private static bool Prefix(float limit, ref float __result) {
+			private static bool Prefix(float limit, ref float __result, float ___m_TotalScannedItemCost) {
 				if (Settings.m_enabled.Value && Settings.m_always_exact_change.Value) {
-					__result = limit;
+					__result = ___m_TotalScannedItemCost;
+					return false;
+				}
+				return true;
+			}
+		}
+
+		[HarmonyPatch(typeof(InteractableCashierCounter), "StartGivingChange")]
+		class HarmonyPatch_InteractableCashierCounter_StartGivingChange {
+			private static bool Prefix(bool ___m_IsMannedByPlayer) {
+				if (Settings.m_enabled.Value && Settings.m_always_exact_change.Value) {
+					__result = 100;
 					return false;
 				}
 				return true;
@@ -90,7 +101,7 @@ public class CustomCustomersPlugin : DDPlugin {
 			}
 		}
 
-        [HarmonyPatch(typeof(UI_CreditCardScreen), "EnableCreditCardMode")]
+		[HarmonyPatch(typeof(UI_CreditCardScreen), "EnableCreditCardMode")]
         class HarmonyPatch_UI_CreditCardScreen_EnableCreditCardMode {
             private static void Postfix(bool isPlayer, ref float ___m_CurrentNumberValue, TextMeshProUGUI ___m_TotalPriceText, InteractableCashierCounter ___m_CashierCounter) {
 				if (!Settings.m_enabled.Value || !isPlayer || !Settings.m_auto_populate_credit.Value) {
@@ -98,6 +109,7 @@ public class CustomCustomersPlugin : DDPlugin {
 				}
                 ___m_CurrentNumberValue = (float) ReflectionUtils.get_field_value(___m_CashierCounter, "m_TotalScannedItemCost");
 				___m_TotalPriceText.text = ___m_CurrentNumberValue.ToString();
+				_info_log(___m_TotalPriceText.text);
             }
         }
     }

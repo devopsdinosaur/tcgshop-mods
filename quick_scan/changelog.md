@@ -1,4 +1,8 @@
-﻿# 0.0.4
+﻿# 0.0.5
+
+- Rebuilt for latest game version (0.60.2)
+
+# 0.0.4
 
 ## Bug Fixes
 - Fixed a bug introduced in previous version resulting in some sounds not playing correctly

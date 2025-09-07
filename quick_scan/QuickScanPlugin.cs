@@ -13,7 +13,7 @@ public static class PluginInfo {
 	public const string NAME = "quick_scan";
 	public const string SHORT_DESCRIPTION = "Scan all items on the counter with a single click!  Works on employees too!";
 
-	public const string VERSION = "0.0.4";
+	public const string VERSION = "0.0.5";
 
 	public const string AUTHOR = "devopsdinosaur";
 	public const string GAME_TITLE = "TCG Shop Simulator";
