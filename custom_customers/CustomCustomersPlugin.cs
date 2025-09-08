@@ -13,7 +13,7 @@ public static class PluginInfo {
 	public const string NAME = "custom_customers";
 	public const string SHORT_DESCRIPTION = "Configurable tweaks (walk speed, exact change, spending money, etc) to customers to improve quality of life for your shop!";
 
-	public const string VERSION = "0.0.8";
+	public const string VERSION = "0.0.9";
 
 	public const string AUTHOR = "devopsdinosaur";
 	public const string GAME_TITLE = "TCG Shop Simulator";
@@ -79,12 +79,26 @@ public class CustomCustomersPlugin : DDPlugin {
 			}
 		}
 
-		[HarmonyPatch(typeof(InteractableCashierCounter), "StartGivingChange")]
-		class HarmonyPatch_InteractableCashierCounter_StartGivingChange {
-			private static bool Prefix(bool ___m_IsMannedByPlayer) {
-				if (Settings.m_enabled.Value && Settings.m_always_exact_change.Value) {
-					__result = 100;
+		[HarmonyPatch(typeof(Customer), "EvaluateFinishScanItem")]
+		class HarmonyPatch_Customer_EvaluateFinishScanItem {
+			private static bool Prefix(Customer __instance, int ___m_ItemScannedCount, ref float ___m_TotalScannedItemCost, InteractableCashierCounter ___m_CurrentQueueCashierCounter, ref bool ___m_IsCheckScanItemOutOfBound) {
+				try {
+					if (!Settings.m_enabled.Value) {
+						return true;
+					}
+					if (___m_ItemScannedCount < __instance.m_ItemInBagList.Count + __instance. m_CardInBagList.Count) {
+						return false;
+					}
+					bool use_card = !Settings.m_always_cash.Value && (___m_TotalScannedItemCost >= 500f || (UnityEngine.Random.Range(0, 100) < 30 && ___m_TotalScannedItemCost >= 5f));
+					__instance.m_CustomerCash.SetIsCard(use_card);
+					__instance.m_CustomerCash.gameObject.SetActive(value: true);
+					__instance.m_Anim.SetBool("HandingOverCash", value: true);
+					___m_CurrentQueueCashierCounter.SetCustomerPaidAmount(use_card, (float) ReflectionUtils.invoke_method(__instance, "GetRandomPayAmount", new object[] { ___m_TotalScannedItemCost }));
+					___m_CurrentQueueCashierCounter.UpdateCashierCounterState(ECashierCounterState.TakingCash);
+					___m_IsCheckScanItemOutOfBound = false;
 					return false;
+				} catch (Exception e) {
+					_error_log("** HarmonyPatch_Customer_EvaluateFinishScanItem ERROR - " + e);
 				}
 				return true;
 			}
@@ -104,14 +118,18 @@ public class CustomCustomersPlugin : DDPlugin {
 		[HarmonyPatch(typeof(UI_CreditCardScreen), "EnableCreditCardMode")]
         class HarmonyPatch_UI_CreditCardScreen_EnableCreditCardMode {
             private static void Postfix(bool isPlayer, ref float ___m_CurrentNumberValue, TextMeshProUGUI ___m_TotalPriceText, InteractableCashierCounter ___m_CashierCounter) {
-				if (!Settings.m_enabled.Value || !isPlayer || !Settings.m_auto_populate_credit.Value) {
-					return;
+				try {
+					if (!Settings.m_enabled.Value || !isPlayer || !Settings.m_auto_populate_credit.Value) {
+						return;
+					}
+					___m_CurrentNumberValue = (float) (double) ReflectionUtils.get_field_value(___m_CashierCounter, "m_TotalScannedItemCost");
+					___m_TotalPriceText.text = ___m_CurrentNumberValue.ToString();
+				} catch (Exception e) {
+					_error_log("** HarmonyPatch_UI_CreditCardScreen_EnableCreditCardMode ERROR - " + e);
 				}
-                ___m_CurrentNumberValue = (float) ReflectionUtils.get_field_value(___m_CashierCounter, "m_TotalScannedItemCost");
-				___m_TotalPriceText.text = ___m_CurrentNumberValue.ToString();
-				_info_log(___m_TotalPriceText.text);
             }
-        }
+
+		}
     }
 
 	class MaxMoney {

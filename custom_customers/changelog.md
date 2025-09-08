@@ -1,4 +1,13 @@
-﻿# 0.0.8
+﻿# 0.0.9
+
+## Bug Fixes
+- Fixed credit card auto-populate
+- Fixed issue with exact change
+
+## Features
+- Added 'Always Cash' option to force customers to always use cash and never credit cards
+
+# 0.0.8
 
 ## Bug Fixes
 - Fixed issue causing credit machine to populate the wrong number for non-USD

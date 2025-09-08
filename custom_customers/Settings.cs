@@ -18,6 +18,7 @@ public class Settings {
     // General
     public static ConfigEntry<bool> m_enabled;
     public static ConfigEntry<bool> m_always_exact_change;
+    public static ConfigEntry<bool> m_always_cash;
     public static ConfigEntry<bool> m_auto_populate_credit;
     public static ConfigEntry<bool> m_rollover_customer_info_enabled;
     public static ConfigEntry<int> m_rollover_customer_info_font_size;
@@ -36,6 +37,7 @@ public class Settings {
         m_enabled = this.m_plugin.Config.Bind<bool>("General", "Enabled", true, "Set to false to disable this mod.");
         m_auto_populate_credit = this.m_plugin.Config.Bind<bool>("General", "Auto-Enter Credit Amount", true, "Set to true to auto-populate credit window with the correct amount (default true).");
         m_always_exact_change = this.m_plugin.Config.Bind<bool>("General", "Exact Change", false, "Set to true to always have customers pay with the exact amount of cash for the purchase.");
+        m_always_cash = this.m_plugin.Config.Bind<bool>("General", "Always Cash", false, "Set to true to always have customers use cash to pay (i.e. never use credit card).");
         m_max_money_multiplier = this.m_plugin.Config.Bind<float>("General", "Max Money Multiplier", 1.0f, "Multiplier applied to customer maximum spending amount [NOTE: This does *not* affect their willingness to spend; download my Big Spender mod for that] (float, default 1 [no change], Greater than 1 = more money, Less than 1 = less money).");
         m_walk_speed_multiplier = this.m_plugin.Config.Bind<float>("General", "Walk Speed Multiplier", 1.0f, "Multiplier applied to customer walk speed (float, default 1 [no change], Greater than 1 = faster walk, Less than 1 = slower walk).");
         m_rollover_customer_info_enabled = this.m_plugin.Config.Bind<bool>("General", "Rollover Customer Info - Enabled", true, "Set to false to disable customer info when rolled over with cursor crosshair.");
